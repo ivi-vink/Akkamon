@@ -9,30 +9,15 @@ export default class Demo extends Phaser.Scene
 
     preload ()
     {
-        this.load.image('logo', 'assets/phaser3-logo.png');
-        this.load.image('libs', 'assets/libs.png');
-        this.load.glsl('bundle', 'assets/plasma-bundle.glsl.js');
-        this.load.glsl('stars', 'assets/starfields.glsl.js');
+        this.load.image("tiles", "assets/catastrophi_tiles_16_blue.png");
+        this.load.tilemapCSV("map", "assets/catastrophi_level2.csv");
     }
 
     create ()
     {
-        this.add.shader('RGB Shift Field', 0, 0, 800, 600).setOrigin(0);
-
-        this.add.shader('Plasma', 0, 412, 800, 172).setOrigin(0);
-
-        this.add.image(400, 300, 'libs');
-
-        const logo = this.add.image(400, 70, 'logo');
-
-        this.tweens.add({
-            targets: logo,
-            y: 350,
-            duration: 1500,
-            ease: 'Sine.inOut',
-            yoyo: true,
-            repeat: -1
-        })
+        const map = this.make.tilemap({ key: "map", tileWidth: 16, tileHeight: 16 });
+        const tileset = map.addTilesetImage("tiles");
+        const layer = map.createLayer(0, tileset, 0, 0); // layer index, tileset, x, y
     }
 }
 
