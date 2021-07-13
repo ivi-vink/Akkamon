@@ -1,5 +1,3 @@
 client/dist/**/**/*.js*
 client/dist/*.js*
 client/dist/**/*.js*
-client/node_modules/
-package-lock.json
