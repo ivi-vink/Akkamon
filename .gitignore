@@ -1,2 +1,3 @@
 client/dist/*.js.map
 client/dist/*.js
+node_modules
