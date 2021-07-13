@@ -1,3 +1,2 @@
-client/dist/**/**/*.js*
-client/dist/*.js*
-client/dist/**/*.js*
+client/dist/*.js.map
+client/dist/*.js
