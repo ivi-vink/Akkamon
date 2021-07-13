@@ -4,9 +4,9 @@
     "description": "A phaser3 client for a simple game",
     "main": "src/game.ts",
     "scripts": {
-        "dev": "rollup --config rollup.config.dev.js",
-        "build": "rollup --config rollup.config.dist.js",
-        "watch": "rollup --watch --config rollup.config.dev.js"
+        "phaserDev": "rollup --config rollup.config.dev.js",
+        "phaserBuild": "rollup --config rollup.config.dist.js",
+        "phaserWatch": "rollup --watch --config rollup.config.dev.js"
     },
     "repository": {
         "type": "git",
