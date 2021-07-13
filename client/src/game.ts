@@ -26,6 +26,37 @@ export default class Demo extends Phaser.Scene
         const belowLayer = map.createLayer("Below Player", tileset, 0, 0);
         const worldLayer = map.createLayer("World", tileset, 0, 0);
         const aboveLayer = map.createLayer("Above Player", tileset, 0, 0);
+
+        // Phaser supports multiple cameras, but you can access the default camera like this:
+        const camera = this.cameras.main;
+
+        // Set up the arrows to control the camera
+        const cursors = this.input.keyboard.createCursorKeys();
+        controls = new Phaser.Cameras.Controls.FixedKeyControl({
+        camera: camera,
+        left: cursors.left,
+        right: cursors.right,
+        up: cursors.up,
+        down: cursors.down,
+        speed: 0.5
+        });
+
+        // Constrain the camera so that it isn't allowed to move outside the width/height of tilemap
+        camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+
+        // Help text that has a "fixed" position on the screen
+        this.add
+        .text(16, 16, "Arrow keys to scroll", {
+          font: "18px monospace",
+          padding: { x: 20, y: 10 },
+          backgroundColor: "#000000"
+        })
+        .setScrollFactor(0);
+
+    }
+
+    update(time: Number, delta: Number) {
+        controls.update(delta);
     }
 }
 
@@ -38,3 +69,4 @@ const config = {
 };
 
 const game = new Phaser.Game(config);
+let controls;
