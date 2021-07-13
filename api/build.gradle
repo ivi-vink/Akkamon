@@ -1,0 +1,52 @@
+plugins {
+    id 'java'
+    // This time we're building a command-line executable application.
+    id 'application'
+}
+
+repositories {
+    jcenter()
+    mavenCentral()
+}
+
+dependencies {
+
+    // Use the Jersey framework to make writing and testing servlets easier.
+    implementation 'org.glassfish.jersey.containers:jersey-container-servlet-core:+'
+    implementation 'org.glassfish.jersey.containers:jersey-container-jetty-http:+'
+    implementation 'org.glassfish.jersey.core:jersey-server:+'
+    implementation 'org.glassfish.jersey.inject:jersey-hk2:+'
+    implementation 'org.glassfish.jersey.media:jersey-media-json-jackson:+'
+    // Use Jakarta (Java EE) for the servlet primitives.
+    implementation 'jakarta.servlet:jakarta.servlet-api:+'
+    // Use the Jetty server.
+    implementation 'org.eclipse.jetty:jetty-server:+'
+    implementation 'org.eclipse.jetty:jetty-servlet:+'
+    implementation 'org.eclipse.jetty:jetty-webapp:+'
+    implementation 'org.eclipse.jetty:jetty-websocket:+'
+    implementation 'org.eclipse.jetty.websocket:websocket-jetty-server:+'
+    // We want to have some logging output if things go wrong, so use the simple console logger from SLF4J.
+    // In our simple use case, the logger gets automatically configured by simply existing.
+    implementation 'org.slf4j:slf4j-simple:+'
+
+    // Reference the domain subproject.
+    // implementation project(':domain')
+
+    // Use JUnit Jupiter API for testing.
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
+    // Also use the Mockito mocking framework to mock simple server functionality.
+    testImplementation "org.mockito:mockito-core:2.+"
+
+    // Use JUnit Jupiter Engine for testing.
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.2'
+}
+
+application {
+    // Define the main class for the application.
+    mainClassName = 'akkamon.api.App'
+}
+
+test {
+    useJUnitPlatform()
+}
+

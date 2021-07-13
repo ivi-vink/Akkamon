@@ -1,4 +1,4 @@
-import 'phaser';
+import Phaser from 'phaser';
 
 export default class Demo extends Phaser.Scene
 {
@@ -23,6 +23,7 @@ export default class Demo extends Phaser.Scene
                       "assets/atlas/atlas.png",
                           "assets/atlas/atlas.json");
     }
+
 
     create ()
     {
@@ -49,7 +50,7 @@ export default class Demo extends Phaser.Scene
         // Create a sprite with physics enabled via the physics system. The image used for the sprite has
         // a bit of whitespace, so I'm using setSize & setOffset to control the size of the player's body.
         player = this.physics.add
-        .sprite(spawnPoint.x, spawnPoint.y, "atlas", "misa-front")
+        .sprite(spawnPoint.x as number, spawnPoint.y as number, "atlas", "misa-front")
         .setSize(30, 40)
         .setOffset(0, 24);
 
@@ -59,28 +60,28 @@ export default class Demo extends Phaser.Scene
         // animation manager so any sprite can access them.
         const anims = this.anims;
         anims.create({
-        key: "misa-left-walk",
-        frames: anims.generateFrameNames("atlas", { prefix: "misa-left-walk.", start: 0, end: 3, zeroPad: 3 }),
-        frameRate: 10,
-        repeat: -1
+            key: "misa-left-walk",
+            frames: anims.generateFrameNames("atlas", { prefix: "misa-left-walk.", start: 0, end: 3, zeroPad: 3 }),
+            frameRate: 10,
+            repeat: -1
         });
         anims.create({
-        key: "misa-right-walk",
-        frames: anims.generateFrameNames("atlas", { prefix: "misa-right-walk.", start: 0, end: 3, zeroPad: 3 }),
-        frameRate: 10,
-        repeat: -1
+            key: "misa-right-walk",
+            frames: anims.generateFrameNames("atlas", { prefix: "misa-right-walk.", start: 0, end: 3, zeroPad: 3 }),
+            frameRate: 10,
+            repeat: -1
         });
         anims.create({
-        key: "misa-front-walk",
-        frames: anims.generateFrameNames("atlas", { prefix: "misa-front-walk.", start: 0, end: 3, zeroPad: 3 }),
-        frameRate: 10,
-        repeat: -1
+            key: "misa-front-walk",
+            frames: anims.generateFrameNames("atlas", { prefix: "misa-front-walk.", start: 0, end: 3, zeroPad: 3 }),
+            frameRate: 10,
+            repeat: -1
         });
         anims.create({
-        key: "misa-back-walk",
-        frames: anims.generateFrameNames("atlas", { prefix: "misa-back-walk.", start: 0, end: 3, zeroPad: 3 }),
-        frameRate: 10,
-        repeat: -1
+            key: "misa-back-walk",
+            frames: anims.generateFrameNames("atlas", { prefix: "misa-back-walk.", start: 0, end: 3, zeroPad: 3 }),
+            frameRate: 10,
+            repeat: -1
         });
 
 
@@ -92,20 +93,22 @@ export default class Demo extends Phaser.Scene
         cursors = this.input.keyboard.createCursorKeys();
 
         // Debug graphics
-        this.input.keyboard.once("keydown_D", event => {
-        // Turn on physics debugging to show player's hitbox
-        this.physics.world.createDebugGraphic();
+        this.input.keyboard.once("keydown_D", (event: Event) => {
+            // Turn on physics debugging to show player's hitbox
+            this.physics.world.createDebugGraphic();
 
-        // Create worldLayer collision graphic above the player, but below the help text
-        const graphics = this.add
-        .graphics()
-        .setAlpha(0.75)
-        .setDepth(20);
-        worldLayer.renderDebug(graphics, {
-        tileColor: null, // Color of non-colliding tiles
-        collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
-        faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
-        });
+            // Create worldLayer collision graphic above the player, but below the help text
+            const graphics = this.add
+            .graphics()
+            .setAlpha(0.75)
+            .setDepth(20);
+
+            worldLayer.renderDebug(graphics, {
+                tileColor: null, // Color of non-colliding tiles
+                collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
+                faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
+            });
+
         });
 
         // Constrain the camera so that it isn't allowed to move outside the width/height of tilemap
@@ -171,8 +174,13 @@ const config = {
         }
     }
 };
-let cursors;
-let player;
-let showDebug = false;
+let cursors: Phaser.Types.Input.Keyboard.CursorKeys;
+let player: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+
+const socket = new WebSocket('ws://localhost:8080');
+socket.addEventListener('open', (e: Event) => {socket.send('Hello Server!');});
+socket.addEventListener('close', (e: Event) => {socket.send('Goodbye!');});
+
+// socket.send("bye");
 
 const game = new Phaser.Game(config);

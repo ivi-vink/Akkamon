@@ -1,9 +1,21 @@
 {
-    "compilerOptions": {
-        "target": "es5",
-        "moduleResolution": "node"
-    },
-    "include": [
-        "./src/**/*"
-    ]
+  "include": [
+    "./src/**/*"
+  ],
+  "compilerOptions": {
+    "target": "es5",
+    "moduleResolution": "node",
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "importsNotUsedAsValues": "error",
+    "esModuleInterop": true,
+    "allowJs": true,
+    "noFallthroughCasesInSwitch": true,
+    "isolatedModules": true
+  }
 }
+
