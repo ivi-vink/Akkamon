@@ -9,4 +9,6 @@ public interface AkkamonSession {
     void disconnect(int statusCode, String message);
 
     void setCurrentUser(User user);
+
+    User getUser();
 }

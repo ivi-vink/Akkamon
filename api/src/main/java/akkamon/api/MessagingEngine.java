@@ -45,7 +45,7 @@ public class MessagingEngine {
             // dummy
             gameState.setCurrentPlayer("Ash", trainers);
 
-            Event event = new Event("updatePos", gameState);
+            Event event = new Event("serverSidePosUpdate", gameState);
 
             session.receiveGameState(gson.toJson(event));
 
@@ -58,7 +58,7 @@ public class MessagingEngine {
                 gameState.setCurrentPlayer(name, trainers);
                 gameState.setRemotePlayers(trainers);
 
-                Event event = new Event("updatePos", gameState);
+                Event event = new Event("serverSidePosUpdate", gameState);
 
                 session.receiveGameState(gson.toJson(event));
             }
@@ -83,7 +83,7 @@ public class MessagingEngine {
             case "login":
                 login(session, event.user);
                 break;
-            case "posUpdate":
+            case  "clientSidePosUpdate":
                 updatePositions(event.gameState);
                 break;
         }
@@ -114,4 +114,7 @@ public class MessagingEngine {
         emitGameState();
     }
 
+    public void sessionOffline(AkkamonSession session) {
+        akkamonSessions.remove(session.getUser().name);
+    }
 }

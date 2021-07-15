@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class GameState {
     public Player currentPlayer;
-    public HashMap<String, Player> remotePlayers;
+    public HashMap<String, Player> remotePlayers = new HashMap<>();
 
 
     public void setCurrentPlayer(String name, HashMap<String, Trainer> trainers) {

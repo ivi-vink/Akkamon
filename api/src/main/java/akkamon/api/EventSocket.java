@@ -35,6 +35,7 @@ public class EventSocket extends WebSocketAdapter implements AkkamonSession {
         super.onWebSocketClose(statusCode, reason);
         System.out.println("Socket Closed: [" + statusCode + "] " + reason);
         closureLatch.countDown();
+        MessagingEngine.getInstance().sessionOffline(this);
     }
 
     @Override
@@ -67,5 +68,10 @@ public class EventSocket extends WebSocketAdapter implements AkkamonSession {
     @Override
     public void setCurrentUser(User user) {
         this.user = user;
+    }
+
+    @Override
+    public User getUser() {
+        return user;
     }
 }

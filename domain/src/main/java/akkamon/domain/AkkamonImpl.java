@@ -1,7 +1,6 @@
 package akkamon.domain;
 
 import java.util.HashMap;
-import java.util.HashSet;
 
 public class AkkamonImpl implements Akkamon {
 
@@ -28,7 +27,7 @@ public class AkkamonImpl implements Akkamon {
         }
     }
 
-    public void updateTrainerPosition(String name, int x, int y) {
+    public void updateTrainerPosition(String name, float x, float y) {
         Trainer trainer = dummyTrainersCollection.get(name);
         trainer.newPosition(x, y);
     }

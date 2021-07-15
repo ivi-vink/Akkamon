@@ -132,19 +132,26 @@ export default class AkkamonStartScene extends Phaser.Scene
     }
 
     update(time: Number, delta: Number) {
-        let player = GameState.getInstance().currentPlayer!.sprite as Sprite;
-        let input = GameState.getInstance().currentPlayer!.input;
+        let player = GameState.getInstance().currentPlayer!;
+        let playerSprite = player.sprite!;
 
+        let input = player.input;
 
         const speed = 175;
-        const prevVelocity = player.body.velocity.clone();
+        const prevVelocity = playerSprite.body.velocity.clone();
 
         // Stop any previous movement from the last frame
-        player.body.setVelocity(0);
+        playerSprite.body.setVelocity(0);
 
         if (input) {
-            this.moveSprite(player, input, speed, prevVelocity)
+            this.moveSprite(playerSprite, input, speed, prevVelocity)
         }
+
+        player.position = {
+            x: playerSprite.x,
+            y: playerSprite.y
+        }
+
 
         // this.drawRemotePlayers();
     }

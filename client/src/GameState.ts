@@ -28,4 +28,14 @@ export default class GameState {
             this.currentPlayer = new Player(receivedState.currentPlayer!);
         }
     }
+
+    withoutSprite() {
+        let spriteLess: GameState = new GameState();
+        spriteLess.currentPlayer = new Player({
+            name: this.currentPlayer!.name,
+            position: this.currentPlayer!.position
+        });
+        // spriteLess.remotePlayers = this.remotePlayers;
+        return spriteLess;
+    }
 }

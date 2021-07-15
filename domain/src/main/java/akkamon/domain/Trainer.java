@@ -2,23 +2,23 @@ package akkamon.domain;
 
 public class Trainer {
     private String name;
-    private int x;
-    private int y;
+    private float x;
+    private float y;
 
     public Trainer(String name) {
         this.name = name;
     }
 
-    public void newPosition(int x, int y) {
+    public void newPosition(float x, float y) {
         this.x = x;
         this.y = y;
     }
 
-    public int getX() {
+    public float getX() {
         return x;
     }
 
-    public int getY() {
+    public float getY() {
         return y;
     }
 
