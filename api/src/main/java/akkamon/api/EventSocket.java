@@ -1,15 +1,17 @@
 package akkamon.api;
 
-import java.util.Locale;
+import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
+import akkamon.api.models.User;
 import org.eclipse.jetty.websocket.api.WebSocketAdapter;
 import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.StatusCode;
 
 
-public class EventSocket extends WebSocketAdapter {
+public class EventSocket extends WebSocketAdapter implements AkkamonSession {
     private final CountDownLatch closureLatch = new CountDownLatch(1);
+
+    public User user;
 
     @Override
     public void onWebSocketConnect(Session sess)
@@ -23,10 +25,8 @@ public class EventSocket extends WebSocketAdapter {
     {
         super.onWebSocketText(message);
         System.out.println("Received TEXT message: " + message);
+        MessagingEngine.getInstance().incoming(this, message);
 
-        if (message.toLowerCase(Locale.US).contains("bye")) {
-            getSession().close(StatusCode.NORMAL, "Thanks");
-        }
     }
 
     @Override
@@ -48,5 +48,24 @@ public class EventSocket extends WebSocketAdapter {
     {
         System.out.println("Awaiting closure from remote");
         closureLatch.await();
+    }
+
+    @Override
+    public void receiveGameState(String gameState) {
+        try {
+            getRemote().sendString(gameState);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void disconnect(int statusCode, String message) {
+        getSession().close(statusCode, message);
+    }
+
+    @Override
+    public void setCurrentUser(User user) {
+        this.user = user;
     }
 }

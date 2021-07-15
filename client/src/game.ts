@@ -1,10 +1,21 @@
 import Phaser from 'phaser';
+import type Player from './player';
+import Client from './client';
+import GameState from './GameState';
 
-export default class Demo extends Phaser.Scene
+type Sprite = Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+
+type Input = {
+    cursors: Phaser.Types.Input.Keyboard.CursorKeys,
+}
+
+
+export default class AkkamonStartScene extends Phaser.Scene
 {
+    remotePlayers: Array<Player> = new Array();
     constructor ()
     {
-        super('demo');
+        super('akkamonStartScene');
     }
 
     preload ()
@@ -49,12 +60,15 @@ export default class Demo extends Phaser.Scene
 
         // Create a sprite with physics enabled via the physics system. The image used for the sprite has
         // a bit of whitespace, so I'm using setSize & setOffset to control the size of the player's body.
-        player = this.physics.add
+
+        let player = this.physics.add
         .sprite(spawnPoint.x as number, spawnPoint.y as number, "atlas", "misa-front")
         .setSize(30, 40)
         .setOffset(0, 24);
 
-        this.physics.add.collider(player, worldLayer);
+        GameState.getInstance().currentPlayer!.setSprite(player);
+
+        // this.physics.add.collider(player, worldLayer);
 
         // Create the player's walking animations from the texture atlas. These are stored in the global
         // animation manager so any sprite can access them.
@@ -90,7 +104,8 @@ export default class Demo extends Phaser.Scene
         camera.startFollow(player);
         camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
-        cursors = this.input.keyboard.createCursorKeys();
+        let cursors = this.input.keyboard.createCursorKeys();
+        GameState.getInstance().currentPlayer!.input = { cursors };
 
         // Debug graphics
         this.input.keyboard.once("keydown_D", (event: Event) => {
@@ -117,23 +132,36 @@ export default class Demo extends Phaser.Scene
     }
 
     update(time: Number, delta: Number) {
+        let player = GameState.getInstance().currentPlayer!.sprite as Sprite;
+        let input = GameState.getInstance().currentPlayer!.input;
+
+
         const speed = 175;
         const prevVelocity = player.body.velocity.clone();
 
         // Stop any previous movement from the last frame
         player.body.setVelocity(0);
 
+        if (input) {
+            this.moveSprite(player, input, speed, prevVelocity)
+        }
+
+        // this.drawRemotePlayers();
+    }
+
+    moveSprite(player: Sprite, input: Input, speed: number, prevVelocity: {x: number, y:number}) {
+
         // Horizontal movement
-        if (cursors.left.isDown) {
+        if (input.cursors.left.isDown) {
             player.body.setVelocityX(-speed);
-        } else if (cursors.right.isDown) {
+        } else if (input.cursors.right.isDown) {
             player.body.setVelocityX(speed);
         }
 
         // Vertical movement
-        if (cursors.up.isDown) {
+        if (input.cursors.up.isDown) {
             player.body.setVelocityY(-speed);
-        } else if (cursors.down.isDown) {
+        } else if (input.cursors.down.isDown) {
             player.body.setVelocityY(speed);
         }
 
@@ -141,13 +169,13 @@ export default class Demo extends Phaser.Scene
         player.body.velocity.normalize().scale(speed);
 
         // Update the animation last and give left/right animations precedence over up/down animations
-        if (cursors.left.isDown) {
+        if (input.cursors.left.isDown) {
             player.anims.play("misa-left-walk", true);
-        } else if (cursors.right.isDown) {
+        } else if (input.cursors.right.isDown) {
             player.anims.play("misa-right-walk", true);
-        } else if (cursors.up.isDown) {
+        } else if (input.cursors.up.isDown) {
             player.anims.play("misa-back-walk", true);
-        } else if (cursors.down.isDown) {
+        } else if (input.cursors.down.isDown) {
             player.anims.play("misa-front-walk", true);
         } else {
             player.anims.stop();
@@ -158,29 +186,5 @@ export default class Demo extends Phaser.Scene
             else if (prevVelocity.y > 0) player.setTexture("atlas", "misa-front");
         }
     }
+
 }
-
-const config = {
-    type: Phaser.AUTO,
-    backgroundColor: '#125555',
-    width: 800,
-    height: 600,
-    pixelArt: true,
-    scene: Demo,
-    physics: {
-        default: "arcade",
-        arcade: {
-            gravity: { y: 0 }
-        }
-    }
-};
-let cursors: Phaser.Types.Input.Keyboard.CursorKeys;
-let player: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
-
-const socket = new WebSocket('ws://localhost:8080');
-socket.addEventListener('open', (e: Event) => {socket.send('Hello Server!');});
-socket.addEventListener('close', (e: Event) => {socket.send('Goodbye!');});
-
-// socket.send("bye");
-
-const game = new Phaser.Game(config);
