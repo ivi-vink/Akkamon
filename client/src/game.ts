@@ -153,7 +153,10 @@ export default class AkkamonStartScene extends Phaser.Scene
         }
 
 
-        // this.drawRemotePlayers();
+        this.renderRemotePlayers(GameState.getInstance().remotePlayers!);
+    }
+
+    renderRemotePlayers(renderRemotePlayers) {
     }
 
     moveSprite(player: Sprite, input: Input, speed: number, prevVelocity: {x: number, y:number}) {

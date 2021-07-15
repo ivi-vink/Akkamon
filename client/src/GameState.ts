@@ -25,8 +25,14 @@ export default class GameState {
         if (this.currentPlayer === undefined) {
             console.log("--> getting current player object");
             console.log(receivedState.currentPlayer!);
-            this.currentPlayer = new Player(receivedState.currentPlayer!);
+            this.currentPlayer = receivedState.currentPlayer!;
         }
+        if (this.remotePlayers === undefined) {
+            this.remotePlayers = receivedState.remotePlayers;
+        } else {
+
+        }
+
     }
 
     withoutSprite() {

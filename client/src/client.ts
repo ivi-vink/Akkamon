@@ -27,7 +27,7 @@ export default class Client
         console.log("-> client is handling incoming event:");
         console.log(event);
         switch (event.type) {
-            case 'updatePos':
+            case 'serverSidePosUpdate':
                 GameState.getInstance().posUpdate(event.gameState!);
                 break;
         }
