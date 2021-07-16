@@ -3,18 +3,30 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "client/dist/assets/tilemaps/test16map.tmx",
+    "activeFile": "client/dist/assets/tilemaps/akkamon-demo-tilemap.json",
     "expandedProjectPaths": [
         "client/dist/assets",
         "client/dist/assets/tilemaps",
-        "client/dist/assets/tilesets",
-        ".",
         "client/dist",
-        "client"
+        "client/dist/assets/tilesets",
+        "client",
+        "."
     ],
     "file.lastUsedOpenFilter": "All Files (*)",
     "fileStates": {
         "": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "client/dist/assets/tilemaps/akkamon-demo-tilemap.json": {
+            "scale": 0.5,
+            "selectedLayer": 1,
+            "viewCenter": {
+                "x": 604,
+                "y": 829
+            }
+        },
+        "client/dist/assets/tilemaps/akkamon-demo-tilemap.json#akkamon-demo-extruded": {
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
@@ -27,12 +39,16 @@
         "client/dist/assets/tilemaps/akkamon-demo-tilemap.json#tuxmon-sample-32px-extruded": {
             "scaleInEditor": 1
         },
+        "client/dist/assets/tilemaps/akkamon-demo-tileset.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
         "client/dist/assets/tilemaps/test16map.tmx": {
             "scale": 0.33,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 687.8787878787879,
-                "y": 1000
+                "x": -353.030303030303,
+                "y": 996.9696969696969
             }
         },
         "client/dist/assets/tilemaps/test16map.tmx#tiles": {
@@ -50,22 +66,28 @@
             "scaleInEditor": 5.5
         }
     },
-    "last.imagePath": "/home/mike/Projects/akkamon_bare/feat-physics/client/dist/assets/tilesets",
+    "last.externalTilesetPath": "/home/mike/Projects/akkamon_bare/feat-initial-player-position-api/client/dist/assets/tilemaps",
+    "last.imagePath": "/home/mike/Projects/akkamon_bare/feat-initial-player-position-api/client/dist/assets/tilesets",
     "map.lastUsedFormat": "tmx",
     "map.tileHeight": 16,
     "map.tileWidth": 16,
     "openFiles": [
-        "client/dist/assets/tilemaps/test16map.tmx"
+        "client/dist/assets/tilemaps/akkamon-demo-tilemap.json"
     ],
     "project": "akkamon.tiled-project",
     "property.type": "bool",
     "recentFiles": [
+        "client/dist/assets/tilemaps/akkamon-demo-tilemap.json",
         "client/dist/assets/tilemaps/test16map.tmx",
+        "client/dist/assets/tilemaps/akkamon-demo-tileset.tsx",
         "client/dist/assets/tilesets/test16.tsx",
         "client/dist/assets/tilesets/test.tsx"
     ],
     "tileset.embedInMap": true,
+    "tileset.lastUsedFilter": "Tiled tileset files (*.tsx *.xml)",
     "tileset.lastUsedFormat": "tsx",
+    "tileset.margin": 1,
+    "tileset.spacing": 2,
     "tileset.tileSize": {
         "height": 32,
         "width": 32

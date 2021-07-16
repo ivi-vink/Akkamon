@@ -24,8 +24,8 @@ export default class Client
 
     in(eventString: string) {
         let event: Event = JSON.parse(eventString);
-        console.log("-> client is handling incoming event:");
-        console.log(event);
+        // console.log("-> client is handling incoming event:");
+        // console.log(event);
         switch (event.type) {
             case 'serverSidePosUpdate':
                 GameState.getInstance().posUpdate(event.gameState!);
@@ -34,8 +34,8 @@ export default class Client
     }
 
     out(event: Event) {
-        console.log("-> client is now sending out message:");
-        console.log(event)
+        // console.log("-> client is now sending out message:");
+        // console.log(event)
         if (this.session) {
             this.session.send(JSON.stringify(event));
         }

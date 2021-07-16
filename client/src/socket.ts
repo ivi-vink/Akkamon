@@ -30,9 +30,9 @@ export default class Socket extends WebSocket implements AkkamonSession
         }
 
         this.onmessage = function incomingMessage(this: WebSocket, ev: MessageEvent) {
-            console.log("received message from the server!");
-            console.log("-> " + ev.data);
-            console.log("calling client.in:");
+            // console.log("received message from the server!");
+            // console.log("-> " + ev.data);
+            // console.log("calling client.in:");
             client.in(ev.data);
         }
     }

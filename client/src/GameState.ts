@@ -6,7 +6,7 @@ export default class GameState {
     static instance: GameState;
 
     currentPlayer: Player | undefined;
-    remotePlayers: { [name: string]: Player } | undefined
+    remotePlayers: { [name: string]: Player } = {};
 
     static getInstance() {
         if (GameState.instance) return GameState.instance;
@@ -21,17 +21,12 @@ export default class GameState {
     }
 
     posUpdate(receivedState: GameState) {
-        console.log("--> Game is updating positions");
         if (this.currentPlayer === undefined) {
-            console.log("--> getting current player object");
-            console.log(receivedState.currentPlayer!);
             this.currentPlayer = receivedState.currentPlayer!;
         }
-        if (this.remotePlayers === undefined) {
-            this.remotePlayers = receivedState.remotePlayers;
-        } else {
 
-        }
+        Object.keys(receivedState.remotePlayers)
+        .forEach(key => this.remotePlayers[key] = receivedState.remotePlayers[key]);
 
     }
 
