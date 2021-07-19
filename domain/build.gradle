@@ -1,7 +1,13 @@
 plugins {
     id 'java'
     id 'java-library'
+    id 'idea'
+    id 'application'
 }
+
+def versions = [
+  ScalaBinary: "2.13"
+]
 
 version 'unspecified'
 
@@ -11,10 +17,33 @@ repositories {
 }
 
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+
+    implementation platform("com.typesafe.akka:akka-bom_${versions.ScalaBinary}:2.6.15")
+    implementation "com.typesafe.akka:akka-actor-typed_${versions.ScalaBinary}"
+
+    implementation "com.typesafe.akka:akka-stream_${versions.ScalaBinary}"
+
+    implementation 'ch.qos.logback:logback-classic:1.2.3'
+    implementation 'junit:junit:4.12'
+
+
+    testImplementation "com.typesafe.akka:akka-actor-testkit-typed_${versions.ScalaBinary}"
+    testImplementation "com.typesafe.akka:akka-stream-testkit_${versions.ScalaBinary}"
+
+    testImplementation 'junit:junit:4.12'
+    testRuntimeOnly 'junit:junit:4.12'
+
 }
 
 test {
     useJUnitPlatform()
+}
+
+application {
+    // Define the main class for the application.
+    mainClassName = 'akkamon.domain.iot.IotEntryPoint'
+}
+
+run {
+  standardInput = System.in
 }

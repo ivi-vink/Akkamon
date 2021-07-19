@@ -35,4 +35,7 @@ public class AkkamonImpl implements Akkamon {
     public HashMap<String, Trainer> getDummyTrainersCollection() {
         return dummyTrainersCollection;
     }
+
+
+
 }

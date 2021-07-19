@@ -8,6 +8,5 @@
  */
 
 rootProject.name = 'mvink_akkamons'
-include('model', 'api')
-include 'domain'
+include('domain', 'api')
 
