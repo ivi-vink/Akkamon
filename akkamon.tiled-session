@@ -6,11 +6,11 @@
     "activeFile": "client/dist/assets/tilemaps/akkamon-demo-tilemap.json",
     "expandedProjectPaths": [
         "client/dist/assets",
-        "client/dist/assets/tilemaps",
-        "client/dist",
         "client/dist/assets/tilesets",
         "client",
-        "."
+        ".",
+        "client/dist/assets/tilemaps",
+        "client/dist"
     ],
     "file.lastUsedOpenFilter": "All Files (*)",
     "fileStates": {
@@ -19,10 +19,10 @@
             "scaleInEditor": 1
         },
         "client/dist/assets/tilemaps/akkamon-demo-tilemap.json": {
-            "scale": 0.5,
-            "selectedLayer": 1,
+            "scale": 4,
+            "selectedLayer": 0,
             "viewCenter": {
-                "x": 604,
+                "x": 603.875,
                 "y": 829
             }
         },
