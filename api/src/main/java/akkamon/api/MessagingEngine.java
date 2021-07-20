@@ -11,6 +11,7 @@ import com.google.gson.Gson;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -59,10 +60,19 @@ public class MessagingEngine implements AkkamonMessageEngine {
 
     void incoming(AkkamonSession session, String message) {
         Event event = gson.fromJson(message, Event.class);
+        String trainerId = String.valueOf(trainerIdToAkkamonSessions.size());
+        String sceneId = "akkamonStartScene";
+
         switch (event.type) {
+            case START_MOVING:
+                system.tell(new AkkamonNexus.RequestStartMoving(
+                        UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE,
+                        "0",
+                        event.sceneId,
+                        event.direction
+                ));
+                break;
             case TRAINER_REGISTRATION:
-                String trainerId = String.valueOf(trainerIdToAkkamonSessions.size());
-                String sceneId = "AkkamonStartScene";
 
                 system.tell(new AkkamonNexus.RequestTrainerRegistration(
                         trainerId,

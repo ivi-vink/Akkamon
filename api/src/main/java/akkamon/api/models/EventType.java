@@ -7,5 +7,8 @@ public enum EventType {
     TRAINER_REGISTRATION,
 
     @SerializedName("HeartBeat")
-    HEART_BEAT
+    HEART_BEAT,
+
+    @SerializedName("StartMoving")
+    START_MOVING
 }

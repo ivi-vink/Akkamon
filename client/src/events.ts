@@ -6,7 +6,7 @@ import type { Direction } from './Direction';
 export enum EventType {
     HEART_BEAT = "HeartBeat",
     PLAYER_REGISTRATION = "PlayerRegistrationEvent",
-    GRID_MOVE_START =  "GridMoveStartEvent"
+    START_MOVING =  "StartMoving"
 }
 
 export interface AkkamonEvent {
@@ -21,12 +21,12 @@ export class PlayerRegistrationEvent implements AkkamonEvent {
     ) { }
 }
 
-export class GridMoveStartEvent implements AkkamonEvent {
+export class StartMovingEvent implements AkkamonEvent {
 
-    public type: EventType = EventType.GRID_MOVE_START;
+    public type: EventType = EventType.START_MOVING;
 
     constructor(
-        public direction: Direction
+        public direction: Direction,
     ) { }
 }
 

@@ -3,8 +3,8 @@ import type Phaser from 'phaser';
 type Sprite = Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
 
 type PlayerConfig = {
-    name: string,
-    position: {x: number, y: number}
+    trainerId: string,
+    position: Phaser.Math.Vector2;
 }
 
 type Input = {
@@ -13,21 +13,12 @@ type Input = {
 
 export class Player
 {
-    name: string
-    position: {x:number, y: number}
-    sprite: Sprite | undefined;
-    input: Input | undefined;
+    trainerId: string
+    position: Phaser.Math.Vector2
 
-    constructor({name, position}: PlayerConfig) {
-        this.name = name;
+    constructor({trainerId, position}: PlayerConfig) {
+        this.trainerId = trainerId;
         this.position = position
     }
 
-    setSprite(sprite: Sprite) {
-        this.sprite = sprite;
-    }
-
-    setInput(input: Input) {
-        this.input = input;
-    }
 }

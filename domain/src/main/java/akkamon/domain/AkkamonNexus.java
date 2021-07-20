@@ -47,6 +47,20 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
         }
     }
 
+    public static class RequestStartMoving implements Command, SceneTrainerGroup.Command {
+        public long requestId;
+        public String trainerid;
+        public String sceneId;
+        public Direction direction;
+
+        public RequestStartMoving(long requestId, String trainerid, String sceneId, Direction direction) {
+            this.requestId = requestId;
+            this.trainerid = trainerid;
+            this.sceneId = sceneId;
+            this.direction = direction;
+        }
+    }
+
     private static class SceneTrainerGroupTerminated implements AkkamonNexus.Command {
         public SceneTrainerGroupTerminated(String sceneId) {
         }
@@ -106,5 +120,6 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
         }
         return this;
     }
+
 
 }

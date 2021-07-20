@@ -1,12 +1,12 @@
 import Phaser from 'phaser';
-import type PlayerSprite from './sprite';
+import type { PlayerSprite } from './sprite';
 import { Direction } from './Direction';
-import AkkamonStartScene from './game';
+import AkkamonStartScene from './scene';
 import {
     akkamonClient
 } from './app';
 import {
-    GridMoveStartEvent
+    StartMovingEvent
 } from './events';
 
 export class GridPhysics {
@@ -49,7 +49,10 @@ export class GridPhysics {
     }
 
     private startMoving(direction: Direction): void {
-        // Client.getInstance().out();
+        console.log("Sending startMovingEvent");
+        akkamonClient.send(
+            new StartMovingEvent(direction)
+        );
         this.playerSprite.startAnimation(direction);
         this.movementDirection = direction;
         this.updatePlayerSpriteTilePosition();

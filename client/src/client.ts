@@ -1,4 +1,5 @@
 import type AkkamonSession from './session';
+import type { GameState } from './GameState';
 import { Socket } from './socket';
 import {
     EventType,
@@ -11,6 +12,7 @@ export class Client
 {
 
     private session: AkkamonSession;
+    private akkamonState?: GameState;
 
     constructor(
         url: string
@@ -18,8 +20,8 @@ export class Client
         this.session = new Socket(url, this);
     }
 
-    setSession(akkamonSession: AkkamonSession) {
-        this.session = akkamonSession;
+    getMutableState(): GameState {
+        return this.akkamonState!;
     }
 
     in(eventString: string) {
@@ -38,21 +40,6 @@ export class Client
         // console.log(event)
         if (this.session) {
             this.session.send(JSON.stringify(event));
-        }
-    }
-
-    login(user: {name:string, password: string}) {
-        console.log("Sending the login message");
-        if (this.session) {
-            this.session.send(JSON.stringify(
-                {
-                    type: 'login',
-                    user: {
-                        name: user.name,
-                        password: user.password
-                    }
-                }
-            ));
         }
     }
 }

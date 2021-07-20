@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
-import type { Player } from './player';
-import { Client } from './client';
-import { GameState } from './GameState';
+import { akkamonClient } from './app';
+import type { GameState } from './GameState';
+import { Player } from './player';
 import { PlayerSprite } from './sprite';
 import { GridControls } from './GridControls';
 import { GridPhysics } from './GridPhysics';
@@ -17,6 +17,7 @@ export default class AkkamonStartScene extends Phaser.Scene
 
     static readonly TILE_SIZE = 32;
 
+    private akkamonState?: GameState
     private gridPhysics?: GridPhysics
     private gridControls?: GridControls
 
@@ -80,15 +81,22 @@ export default class AkkamonStartScene extends Phaser.Scene
         // Create a sprite with physics enabled via the physics system. The image used for the sprite has
         // a bit of whitespace, so I'm using setSize & setOffset to control the size of the player's body.
 
-        let player = new PlayerSprite({
-            scene: this,
-            tilePos: new Phaser.Math.Vector2(
+        this.akkamonState = akkamonClient.getMutableState();
+
+        var tilePos = new Phaser.Math.Vector2(
                 Math.floor(this.spawnPoint.x! / AkkamonStartScene.TILE_SIZE),
                 Math.floor(this.spawnPoint.y! / AkkamonStartScene.TILE_SIZE),
-                ),
+                );
+
+        let player = new PlayerSprite({
+            scene: this,
+            tilePos: tilePos,
             texture: this.textures.get("atlas"),
             frame: "misa-front",
-            player: GameState.getInstance().currentPlayer!,
+            player: new Player({
+                trainerId: 'ash',
+                position: tilePos
+            })// this.akkamonState.getLocalMutablePlayerState(),
         });
 
         this.add.existing(player);

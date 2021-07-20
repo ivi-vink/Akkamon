@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import AkkamonStartScene from './scene';
-import type Player from './player';
+import type { Player } from './player';
 import type { Direction } from './Direction';
 
 type PlayerSpriteConfig = {
