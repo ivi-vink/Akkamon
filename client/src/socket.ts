@@ -1,32 +1,24 @@
 import Phaser from 'phaser';
-import Client from './client'
+import type { Client } from './client'
 import type AkkamonSession from './session'
+import {
+    PlayerRegistrationEvent
+} from './events';
 
-export default class Socket extends WebSocket implements AkkamonSession
+export class Socket extends WebSocket implements AkkamonSession
 {
-    static instance: AkkamonSession;
-
-    static getInstance(url: string, user: {name: string, password: string}) {
-        if (Socket.instance) return Socket.instance;
-        else {
-            Socket.instance = new Socket(url, user);
-            return Socket.instance;
-        }
-    }
-
-    constructor(url: string, user: {name: string, password: string}) {
+    constructor(
+        url: string,
+        client: Client
+    ) {
         super(url);
-
-        let client = Client.getInstance();
-
-        let session = this;
 
         this.onopen = function echo(this: WebSocket, ev: Event) {
             console.log("opening socket");
             console.log("this is the websocket");
             console.log(this);
             console.log("logging in the session to the server");
-            client.login(user);
+            client.out(new PlayerRegistrationEvent());
         }
 
         this.onmessage = function incomingMessage(this: WebSocket, ev: MessageEvent) {

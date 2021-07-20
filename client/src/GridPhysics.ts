@@ -2,10 +2,16 @@ import Phaser from 'phaser';
 import type PlayerSprite from './sprite';
 import { Direction } from './Direction';
 import AkkamonStartScene from './game';
+import {
+    akkamonClient
+} from './app';
+import {
+    GridMoveStartEvent
+} from './events';
 
 export class GridPhysics {
 
-    private movementDirectionVectors: {
+    static movementDirectionVectors: {
         [key in Direction]?: Phaser.Math.Vector2;
     } = {
         [Direction.UP]: Phaser.Math.Vector2.UP,
@@ -43,6 +49,7 @@ export class GridPhysics {
     }
 
     private startMoving(direction: Direction): void {
+        // Client.getInstance().out();
         this.playerSprite.startAnimation(direction);
         this.movementDirection = direction;
         this.updatePlayerSpriteTilePosition();
@@ -73,7 +80,7 @@ export class GridPhysics {
         this.playerSprite.setTilePos(
             this.playerSprite
             .getTilePos()
-            .add(this.movementDirectionVectors[this.movementDirection]!)
+            .add(GridPhysics.movementDirectionVectors[this.movementDirection]!)
         );
     }
 
@@ -91,7 +98,7 @@ export class GridPhysics {
         this.tileSizePixelsWalked %= AkkamonStartScene.TILE_SIZE;
 
 
-        const directionVec = this.movementDirectionVectors[
+        const directionVec = GridPhysics.movementDirectionVectors[
             this.movementDirection
         ]!.clone();
 
@@ -128,7 +135,7 @@ export class GridPhysics {
     private tilePosInDirection(direction: Direction): Phaser.Math.Vector2 {
         return this.playerSprite
         .getTilePos()
-        .add(this.movementDirectionVectors[direction]!);
+        .add(GridPhysics.movementDirectionVectors[direction]!);
     }
 
     private hasBlockingTile(pos: Phaser.Math.Vector2): boolean {

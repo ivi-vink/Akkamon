@@ -1,21 +1,19 @@
-import type {
-    Event,
-} from './events';
 import type AkkamonSession from './session';
-import GameState from './GameState';
+import { Socket } from './socket';
+import type {
+    AkkamonEvent
+} from './events';
 
 
-export default class Client
+export class Client
 {
-    static instance: Client
-    session: AkkamonSession | undefined;
 
-    static getInstance() {
-        if (Client.instance) return Client.instance;
-        else {
-            Client.instance = new Client();
-            return Client.instance;
-        }
+    private session: AkkamonSession;
+
+    constructor(
+        url: string
+    ) {
+        this.session = new Socket(url, this);
     }
 
     setSession(akkamonSession: AkkamonSession) {
@@ -23,17 +21,15 @@ export default class Client
     }
 
     in(eventString: string) {
-        let event: Event = JSON.parse(eventString);
+        let event: AkkamonEvent = JSON.parse(eventString);
         // console.log("-> client is handling incoming event:");
         // console.log(event);
         switch (event.type) {
-            case 'serverSidePosUpdate':
-                GameState.getInstance().posUpdate(event.gameState!);
-                break;
+
         }
     }
 
-    out(event: Event) {
+    out(event: AkkamonEvent) {
         // console.log("-> client is now sending out message:");
         // console.log(event)
         if (this.session) {
