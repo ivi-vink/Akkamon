@@ -1,28 +1,31 @@
 package akkamon.domain;
 
-public class Trainer {
-    private String name;
-    private float x;
-    private float y;
+import akka.actor.typed.Behavior;
+import akka.actor.typed.javadsl.AbstractBehavior;
+import akka.actor.typed.javadsl.ActorContext;
+import akka.actor.typed.javadsl.Behaviors;
+import akka.actor.typed.javadsl.Receive;
 
-    public Trainer(String name) {
-        this.name = name;
+public class Trainer extends AbstractBehavior<Trainer.Command> {
+
+    public interface Command { }
+
+    public static Behavior<Command> create(String sceneId, String trainerId) {
+        return Behaviors.setup(context -> new Trainer(context, sceneId, trainerId));
     }
 
-    public void newPosition(float x, float y) {
-        this.x = x;
-        this.y = y;
+    private String sceneId;
+    private String trainerId;
+
+    public Trainer(ActorContext<Command> context, String sceneId, String trainerId) {
+        super(context);
+        this.sceneId = sceneId;
+        this.trainerId = trainerId;
     }
 
-    public float getX() {
-        return x;
+    @Override
+    public Receive<Command> createReceive() {
+        return null;
     }
 
-    public float getY() {
-        return y;
-    }
-
-    public String getName() {
-        return name;
-    }
 }

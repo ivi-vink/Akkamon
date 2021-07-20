@@ -4,12 +4,20 @@ plugins {
     id 'application'
 }
 
+def versions = [
+        ScalaBinary: "2.13"
+]
+
+
 repositories {
     jcenter()
     mavenCentral()
 }
 
 dependencies {
+
+    implementation platform("com.typesafe.akka:akka-bom_${versions.ScalaBinary}:2.6.15")
+    implementation "com.typesafe.akka:akka-actor-typed_${versions.ScalaBinary}"
 
     // Use the Jersey framework to make writing and testing servlets easier.
     implementation 'org.glassfish.jersey.containers:jersey-container-servlet-core:+'
@@ -30,9 +38,6 @@ dependencies {
     implementation 'org.slf4j:slf4j-simple:+'
 
     implementation 'com.google.code.gson:gson:2.8.7'
-
-    // Reference the domain subproject.
-    implementation project(':domain')
 
     // Use JUnit Jupiter API for testing.
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'

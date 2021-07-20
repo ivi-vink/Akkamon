@@ -6,14 +6,18 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.websocket.server.JettyWebSocketServlet;
 import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer;
-import org.glassfish.jersey.servlet.ServletContainer;
 
 
 public class App {
 
+    public static MessagingEngine messagingEngine;
+
     public static void main(String[] args) {
         Server server = startServer(8080);
         ServletContextHandler context = createStatefulContext(server);
+
+        messagingEngine = new MessagingEngine();
+
 
 
         // websocket behaviour

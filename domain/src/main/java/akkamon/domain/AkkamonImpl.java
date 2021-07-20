@@ -17,19 +17,19 @@ public class AkkamonImpl implements Akkamon {
 
     @Override
     public void newPlayerConnected(String name, String password) {
-        switch (dummyTrainersCollection.size()) {
-            case 0:
-                dummyTrainersCollection.put("Ash", new Trainer("Ash"));
-                break;
-            case 1:
-                dummyTrainersCollection.put("Misty", new Trainer("Misty"));
-                break;
-        }
+        // switch (dummyTrainersCollection.size()) {
+        //     case 0:
+        //         dummyTrainersCollection.put("Ash", new Trainer("Ash"));
+        //         break;
+        //     case 1:
+        //         dummyTrainersCollection.put("Misty", new Trainer("Misty"));
+        //         break;
+        // }
     }
 
     public void updateTrainerPosition(String name, float x, float y) {
-        Trainer trainer = dummyTrainersCollection.get(name);
-        trainer.newPosition(x, y);
+        // Trainer trainer = dummyTrainersCollection.get(name);
+        // trainer.newPosition(x, y);
     }
 
     public HashMap<String, Trainer> getDummyTrainersCollection() {
