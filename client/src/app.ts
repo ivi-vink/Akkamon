@@ -1,5 +1,5 @@
 // import Phaser from 'phaser';
-import AkkamonStartScene from './game';
+import AkkamonStartScene from './scene';
 import { Client } from './client';
 
 const serviceUrl = 'ws://localhost:8080';

@@ -11,7 +11,7 @@ type Input = {
     cursors: Phaser.Types.Input.Keyboard.CursorKeys,
 }
 
-export default class Player
+export class Player
 {
     name: string
     position: {x:number, y: number}

@@ -1,6 +1,8 @@
 import type AkkamonSession from './session';
 import { Socket } from './socket';
-import type {
+import {
+    EventType,
+    HeartBeatReplyEvent,
     AkkamonEvent
 } from './events';
 
@@ -25,11 +27,13 @@ export class Client
         // console.log("-> client is handling incoming event:");
         // console.log(event);
         switch (event.type) {
-
+            case EventType.HEART_BEAT:
+                this.send(new HeartBeatReplyEvent());
+                break;
         }
     }
 
-    out(event: AkkamonEvent) {
+    send(event: AkkamonEvent) {
         // console.log("-> client is now sending out message:");
         // console.log(event)
         if (this.session) {

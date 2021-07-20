@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import AkkamonStartScene from './game';
+import AkkamonStartScene from './scene';
 import type Player from './player';
 import type { Direction } from './Direction';
 
@@ -15,7 +15,7 @@ interface AkkamonPlayerSprite extends Phaser.GameObjects.Sprite {
     player: Player
 }
 
-export default class PlayerSprite extends Phaser.GameObjects.Sprite implements AkkamonPlayerSprite {
+export class PlayerSprite extends Phaser.GameObjects.Sprite implements AkkamonPlayerSprite {
 
     player: Player;
     tilePos: Phaser.Math.Vector2;

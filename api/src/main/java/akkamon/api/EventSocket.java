@@ -1,8 +1,10 @@
 package akkamon.api;
 
+import akkamon.domain.AkkamonSession;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketAdapter;
 
+import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
 
@@ -44,5 +46,14 @@ public class EventSocket extends WebSocketAdapter implements AkkamonSession {
     {
         System.out.println("Awaiting closure from remote");
         closureLatch.await();
+    }
+
+    @Override
+    public void send(String event) {
+        try {
+            getRemote().sendString(event);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

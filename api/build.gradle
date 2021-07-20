@@ -37,6 +37,10 @@ dependencies {
     // In our simple use case, the logger gets automatically configured by simply existing.
     implementation 'org.slf4j:slf4j-simple:+'
 
+    // Reference the domain subproject.
+    implementation project(':domain')
+
+
     implementation 'com.google.code.gson:gson:2.8.7'
 
     // Use JUnit Jupiter API for testing.

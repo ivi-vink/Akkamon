@@ -1,7 +1,6 @@
-import Player from './player';
-import type { Event } from './events';
+import type { Player } from './player';
 
-export default class GameState {
+export class GameState {
 
     static instance: GameState;
 
@@ -30,13 +29,4 @@ export default class GameState {
 
     }
 
-    withoutSprite() {
-        let spriteLess: GameState = new GameState();
-        spriteLess.currentPlayer = new Player({
-            name: this.currentPlayer!.name,
-            position: this.currentPlayer!.position
-        });
-        // spriteLess.remotePlayers = this.remotePlayers;
-        return spriteLess;
-    }
 }

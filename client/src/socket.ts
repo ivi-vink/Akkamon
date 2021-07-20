@@ -18,12 +18,12 @@ export class Socket extends WebSocket implements AkkamonSession
             console.log("this is the websocket");
             console.log(this);
             console.log("logging in the session to the server");
-            client.out(new PlayerRegistrationEvent());
+            client.send(new PlayerRegistrationEvent());
         }
 
         this.onmessage = function incomingMessage(this: WebSocket, ev: MessageEvent) {
-            // console.log("received message from the server!");
-            // console.log("-> " + ev.data);
+            //console.log("received message from the server!");
+            console.log("-> " + ev.data);
             // console.log("calling client.in:");
             client.in(ev.data);
         }

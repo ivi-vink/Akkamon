@@ -54,7 +54,10 @@ public class SceneTrainerGroup extends AbstractBehavior<SceneTrainerGroup.Comman
         if (this.sceneId.equals(registrationRequest.sceneId)) {
             ActorRef<Trainer.Command> trainerActor = trainerIdToActor.get(registrationRequest.trainerId);
             if (trainerActor != null) {
-                registrationRequest.replyTo.tell(new AkkamonNexus.TrainerRegistered(trainerActor));
+                registrationRequest.replyTo.tell(new AkkamonNexus.TrainerRegistered(
+                        registrationRequest.trainerId,
+                        registrationRequest.session
+                ));
             } else {
                 getContext().getLog().info("Creating trainer actor for {}", registrationRequest.trainerId);
                 trainerActor =
@@ -63,7 +66,10 @@ public class SceneTrainerGroup extends AbstractBehavior<SceneTrainerGroup.Comman
                 getContext()
                         .watchWith(trainerActor, new SceneTrainerGroup.TrainerOffline(trainerActor, sceneId, registrationRequest.trainerId));
                 trainerIdToActor.put(registrationRequest.trainerId, trainerActor);
-                registrationRequest.replyTo.tell(new AkkamonNexus.TrainerRegistered(trainerActor));
+                registrationRequest.replyTo.tell(new AkkamonNexus.TrainerRegistered(
+                        registrationRequest.trainerId,
+                        registrationRequest.session
+                ));
             }
         } else {
             getContext()
