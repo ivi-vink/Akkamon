@@ -1,5 +1,6 @@
 package akkamon.domain;
 
+import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
@@ -11,6 +12,32 @@ import java.util.Optional;
 public class Trainer extends AbstractBehavior<Trainer.Command> {
 
     public interface Command { }
+
+    public static class ReadTrainerPosition implements Command {
+        final long requestId;
+        final ActorRef<RespondTrainerPosition> replyTo;
+
+        public ReadTrainerPosition(long requestId, ActorRef<RespondTrainerPosition> replyTo) {
+            this.requestId = requestId;
+            this.replyTo = replyTo;
+        }
+    }
+
+    public static final class RespondTrainerPosition {
+        final long requestId;
+        final String trainerId;
+        final Optional<TilePos> value;
+
+        public RespondTrainerPosition(
+                long requestId,
+                String trainerId,
+                Optional<TilePos> value
+        ) {
+            this.requestId = requestId;
+            this.trainerId = trainerId;
+            this.value = value;
+        }
+    }
 
     public static Behavior<Command> create(String sceneId, String trainerId) {
         return Behaviors.setup(context -> new Trainer(context, sceneId, trainerId));
@@ -31,6 +58,10 @@ public class Trainer extends AbstractBehavior<Trainer.Command> {
     public Receive<Command> createReceive() {
         return newReceiveBuilder()
                 .onMessage(
+                        ReadTrainerPosition.class,
+                        this::onReadTrainerPosition
+                )
+                .onMessage(
                         AkkamonNexus.RequestStartMoving.class,
                         this::onStartMoving
                 )
@@ -42,6 +73,15 @@ public class Trainer extends AbstractBehavior<Trainer.Command> {
                         this::onNewTilePos
                 )
                 .build();
+    }
+
+    private Trainer onReadTrainerPosition(ReadTrainerPosition readTrainerPositionRequest) {
+        readTrainerPositionRequest.replyTo.tell(new RespondTrainerPosition(
+                readTrainerPositionRequest.requestId,
+                trainerId,
+                lastValidTilePos
+        ));
+        return this;
     }
 
     private Trainer onNewTilePos(AkkamonNexus.RequestNewTilePos newTilePosRequest) {

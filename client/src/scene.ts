@@ -1,11 +1,13 @@
 import Phaser from 'phaser';
 import { akkamonClient } from './app';
-import type { GameState } from './GameState';
 import { Player } from './player';
 import { PlayerSprite } from './sprite';
+
 import { GridControls } from './GridControls';
 import { GridPhysics } from './GridPhysics';
 import { Direction } from './Direction';
+
+import { RemotePlayerEngine } from './RemotePlayerEngine';
 
 
 type RemotePlayerStates = {
@@ -17,9 +19,10 @@ export default class AkkamonStartScene extends Phaser.Scene
 
     static readonly TILE_SIZE = 32;
 
-    private akkamonState?: GameState
     private gridPhysics?: GridPhysics
     private gridControls?: GridControls
+
+    private remotePlayerEngine?: RemotePlayerEngine
 
     directionToAnimation: {
         [key in Direction]: string
@@ -81,8 +84,6 @@ export default class AkkamonStartScene extends Phaser.Scene
         // Create a sprite with physics enabled via the physics system. The image used for the sprite has
         // a bit of whitespace, so I'm using setSize & setOffset to control the size of the player's body.
 
-        this.akkamonState = akkamonClient.getMutableState();
-
         var tilePos = new Phaser.Math.Vector2(
                 Math.floor(this.spawnPoint.x! / AkkamonStartScene.TILE_SIZE),
                 Math.floor(this.spawnPoint.y! / AkkamonStartScene.TILE_SIZE),
@@ -105,6 +106,8 @@ export default class AkkamonStartScene extends Phaser.Scene
             this.input,
             this.gridPhysics
         );
+
+        this.remotePlayerEngine = new RemotePlayerEngine(this);
 
         this.createPlayerAnimation(Direction.LEFT, 0, 3);
         this.createPlayerAnimation(Direction.RIGHT, 0, 3);

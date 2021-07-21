@@ -7,6 +7,7 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -60,7 +61,26 @@ public class SceneTrainerGroup extends AbstractBehavior<SceneTrainerGroup.Comman
                         AkkamonNexus.RequestNewTilePos.class,
                         this::onNewTilePos
                 )
+                .onMessage(
+                        AkkamonNexus.RequestHeartBeat.class,
+                        this::onHeartBeat
+                )
                 .build();
+    }
+
+    private SceneTrainerGroup onHeartBeat(AkkamonNexus.RequestHeartBeat heartBeatRequest) {
+        Map<String, ActorRef<Trainer.Command>> trainerIdToActorCopy = new HashMap<>(this.trainerIdToActor);
+        getContext()
+                .spawnAnonymous(
+                        HeartBeatQuery.create(
+                                trainerIdToActorCopy,
+                                heartBeatRequest.requestId,
+                                sceneId,
+                                heartBeatRequest.replyTo,
+                                Duration.ofSeconds(3)
+                        )
+                );
+        return this;
     }
 
     private SceneTrainerGroup onNewTilePos(AkkamonNexus.RequestNewTilePos newTilePosRequest) {
@@ -142,6 +162,7 @@ public class SceneTrainerGroup extends AbstractBehavior<SceneTrainerGroup.Comman
                 // TODO add optional already registered?
                 registrationRequest.replyTo.tell(new AkkamonNexus.TrainerRegistered(
                         registrationRequest.trainerId,
+                        sceneId,
                         registrationRequest.session
                 ));
             } else {
@@ -154,6 +175,7 @@ public class SceneTrainerGroup extends AbstractBehavior<SceneTrainerGroup.Comman
                 trainerIdToActor.put(registrationRequest.trainerId, trainerActor);
                 registrationRequest.replyTo.tell(new AkkamonNexus.TrainerRegistered(
                         registrationRequest.trainerId,
+                        sceneId,
                         registrationRequest.session
                 ));
             }

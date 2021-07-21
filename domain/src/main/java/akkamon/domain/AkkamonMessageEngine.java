@@ -1,8 +1,10 @@
 package akkamon.domain;
 
+import java.util.Map;
+
 public interface AkkamonMessageEngine {
     // broadcasts position info to WebSocket Clients
-    void broadCastToScene(String sceneId, String message);
+    void broadCastHeartBeatToScene(String sceneId, Map<String, AkkamonNexus.TrainerPositionReading> trainerPositions);
 
     void registerTrainerSessionToScene(String sceneId, AkkamonSession session);
 

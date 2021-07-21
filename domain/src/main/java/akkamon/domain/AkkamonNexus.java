@@ -8,6 +8,7 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
@@ -37,13 +38,16 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
 
     public static class TrainerRegistered implements Command {
         private String trainerId;
+        private String sceneId;
         private AkkamonSession session;
 
         public TrainerRegistered(
                 String trainerId,
+                String sceneId,
                 AkkamonSession session
         ) {
             this.trainerId = trainerId;
+            this.sceneId = sceneId;
             this.session = session;
         }
     }
@@ -108,16 +112,34 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
             implements Command, SceneTrainerGroup.Command {
 
         public long requestId;
+        // TODO find a way to make the command Narrower
         public ActorRef<AkkamonNexus.Command> replyTo;
 
-        public RequestHeartBeat(long requestId, ActorRef<AkkamonNexus.Command> replyTo) {
+        public RequestHeartBeat(long requestId, ActorRef<Command> replyTo) {
             this.requestId = requestId;
             this.replyTo = replyTo;
         }
     }
 
+    private static class SceneTrainerGroupTerminated implements AkkamonNexus.Command {
+        public SceneTrainerGroupTerminated(String sceneId) {
+        }
+    }
+
     public static class RespondHeartBeatQuery implements Command {
 
+        public final long requestId;
+        public final String sceneId;
+        public final Map<String, TrainerPositionReading> trainerPositions;
+
+        public RespondHeartBeatQuery(
+                long requestId,
+                String sceneId,
+                Map<String, TrainerPositionReading> trainerPositions) {
+            this.requestId = requestId;
+            this.sceneId = sceneId;
+            this.trainerPositions = trainerPositions;
+        }
     }
 
     public interface TrainerPositionReading { }
@@ -141,14 +163,21 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
 
         @Override
         public String toString() {
-            return "TrainerPosition={x: " + value.x + ", " + value.y + "}";
+            return "TrainerPosition={x: " + value.x + ", y: " + value.y + "}";
         }
 
     }
 
-    private static class SceneTrainerGroupTerminated implements AkkamonNexus.Command {
-        public SceneTrainerGroupTerminated(String sceneId) {
-        }
+    public enum TrainerPositionNotAvailable implements TrainerPositionReading {
+        INSTANCE
+    }
+
+    public enum TrainerOffline implements TrainerPositionReading {
+        INSTANCE
+    }
+
+    public enum TrainerTimedOut implements TrainerPositionReading {
+        INSTANCE
     }
 
     public static Behavior<AkkamonNexus.Command> create(AkkamonMessageEngine messagingEngine) {
@@ -170,13 +199,35 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
                 .onMessage(RequestTrainerRegistration.class, this::onTrainerRegistration)
                 .onMessage(TrainerRegistered.class, this::onTrainerRegistered)
                 .onMessage(RequestHeartBeat.class, this::onHeartBeat)
+                .onMessage(RespondHeartBeatQuery.class, this::onHeartBeatQueryResponse)
                 .onMessage(RequestStartMoving.class, this::onStartMoving)
                 .onMessage(RequestStopMoving.class, this::onStopMoving)
                 .onMessage(RequestNewTilePos.class, this::onNewTilePos)
                 .build();
     }
 
+    private AkkamonNexus onHeartBeatQueryResponse(RespondHeartBeatQuery response) {
+        // Turn on for logging
+
+
+        StringBuilder positions = new StringBuilder();
+        positions.append("\n" + response.sceneId.toUpperCase(Locale.ROOT) + "\n");
+        for (Map.Entry<String, TrainerPositionReading> entry : response.trainerPositions.entrySet()) {
+            positions.append(entry.getKey() + ": " +entry.getValue());
+            positions.append("\n");
+        }
+        getContext().getLog().info(String.valueOf(positions));
+
+        messageEngine.broadCastHeartBeatToScene(response.sceneId, response.trainerPositions);
+
+       return this;
+    }
+
     private AkkamonNexus onHeartBeat(RequestHeartBeat heartBeatRequest) {
+        // TODO do some checks here?
+        for (ActorRef<SceneTrainerGroup.Command> sceneGroupActor: sceneIdToActor.values()) {
+            sceneGroupActor.tell(heartBeatRequest);
+        }
         return this;
     }
 
@@ -218,8 +269,9 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
 
     private AkkamonNexus onTrainerRegistered(TrainerRegistered reply) {
         // TODO test when registration fails?
-        getContext().getLog().info("Adding {} to Live AkkamonSessions in Messaging Engine", reply.trainerId);
-        messageEngine.registerTrainerSessionToScene(reply.trainerId, reply.session);
+        getContext().getLog().info("Adding {} to scene {} Live AkkamonSessions in Messaging Engine", reply.trainerId, reply.sceneId);
+        messageEngine.registerTrainerSessionToScene(reply.sceneId, reply.session);
+        reply.session.setTrainerId(reply.trainerId);
         return this;
     }
 

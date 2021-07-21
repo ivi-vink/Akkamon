@@ -3,15 +3,13 @@ package akkamon.api;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.ActorSystem;
 import akkamon.api.models.Event;
+import akkamon.api.models.HeartBeatEvent;
 import akkamon.domain.AkkamonMessageEngine;
 import akkamon.domain.AkkamonNexus;
 import akkamon.domain.AkkamonSession;
 import com.google.gson.Gson;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -43,18 +41,43 @@ public class MessagingEngine implements AkkamonMessageEngine {
     }
 
     @Override
-    public void broadCastToScene(String sceneId, String message) {
-        Set<AkkamonSession> sessionsInScene = sceneIdToAkkamonSessions.get(sceneId);
-        for (AkkamonSession session : sessionsInScene) {
-            session.send(message);
+    public void broadCastHeartBeatToScene(String sceneId,
+                                          Map<String, AkkamonNexus.TrainerPositionReading> trainerPositions) {
+        Set<AkkamonSession> sceneSessions = sceneIdToAkkamonSessions.get(sceneId);
+        System.out.println(sceneSessions);
+        System.out.println(sceneIdToAkkamonSessions.keySet());
+        if (sceneSessions != null) {
+            for (AkkamonSession session : sceneSessions) {
+                Map<String, AkkamonNexus.TrainerPositionReading> withoutSelf = new HashMap<>(trainerPositions);
+                withoutSelf.remove(session.getTrainerId());
+                HeartBeatEvent heartBeat = new HeartBeatEvent(
+                        withoutSelf
+                );
+                String heartBeatMessage = gson.toJson(heartBeat);
+                System.out.println("Sending to " + session.getTrainerId());
+                System.out.println(heartBeatMessage);
+                session.send(
+                        heartBeatMessage
+                );
+            }
         }
     }
 
     @Override
     public void registerTrainerSessionToScene(String sceneId, AkkamonSession session) {
-        sceneIdToAkkamonSessions.get(sceneId).add(session);
-        session.setTrainerId(sceneId);
-        heartBeat();
+        System.out.println("Registering session to scene " + sceneId);
+        Set<AkkamonSession> sessionsInScene = sceneIdToAkkamonSessions.get(sceneId);
+        if (sessionsInScene != null) {
+            sessionsInScene.add(session);
+        } else {
+            sessionsInScene = new HashSet<>();
+            sessionsInScene.add(session);
+            sceneIdToAkkamonSessions.put(sceneId,
+                    sessionsInScene
+            );
+            System.out.println(sceneIdToAkkamonSessions.keySet());
+        }
+        //heartBeat();
     }
 
     @Override
