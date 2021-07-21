@@ -6,7 +6,9 @@ import {
     akkamonClient
 } from './app';
 import {
-    StartMovingEvent
+    StartMovingEvent,
+    StopMovingEvent,
+    NewTilePosEvent
 } from './events';
 
 export class GridPhysics {
@@ -51,7 +53,7 @@ export class GridPhysics {
     private startMoving(direction: Direction): void {
         console.log("Sending startMovingEvent");
         akkamonClient.send(
-            new StartMovingEvent(direction)
+            new StartMovingEvent(this.playerSprite.getScene(), direction)
         );
         this.playerSprite.startAnimation(direction);
         this.movementDirection = direction;
@@ -80,6 +82,12 @@ export class GridPhysics {
     }
 
     private updatePlayerSpriteTilePosition() {
+        akkamonClient.send(
+            new NewTilePosEvent(
+                this.playerSprite.getScene(),
+                this.playerSprite.getTilePos()
+            )
+        );
         this.playerSprite.setTilePos(
             this.playerSprite
             .getTilePos()
@@ -127,6 +135,12 @@ export class GridPhysics {
     }
 
     private stopMoving(): void {
+        akkamonClient.send(
+            new StopMovingEvent(
+                this.playerSprite.getScene(),
+                this.movementDirection
+            )
+        );
         this.playerSprite.stopAnimation(this.movementDirection);
         this.movementDirection = Direction.NONE;
     }

@@ -3,7 +3,6 @@ package akkamon.api;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.ActorSystem;
 import akkamon.api.models.Event;
-import akkamon.api.models.HeartBeatEvent;
 import akkamon.domain.AkkamonMessageEngine;
 import akkamon.domain.AkkamonNexus;
 import akkamon.domain.AkkamonSession;
@@ -11,13 +10,14 @@ import com.google.gson.Gson;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class MessagingEngine implements AkkamonMessageEngine {
 
-    private Map<String, AkkamonSession> trainerIdToAkkamonSessions = new HashMap<>();
+    private Map<String, Set<AkkamonSession>> sceneIdToAkkamonSessions = new HashMap<>();
     private Gson gson = new Gson();
 
     private ActorRef<AkkamonNexus.Command> system;
@@ -36,44 +36,71 @@ public class MessagingEngine implements AkkamonMessageEngine {
     }
 
     private void heartBeat() {
-        if (!trainerIdToAkkamonSessions.isEmpty()) {
-            for (Map.Entry<String, AkkamonSession> entry : trainerIdToAkkamonSessions.entrySet()) {
-                // System.out.println("heartbeat to " + entry.getKey());
-                entry.getValue().send(gson.toJson(new HeartBeatEvent()));
-            }
+        system.tell(new AkkamonNexus.RequestHeartBeat(
+                UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE,
+                system
+                ));
+    }
+
+    @Override
+    public void broadCastToScene(String sceneId, String message) {
+        Set<AkkamonSession> sessionsInScene = sceneIdToAkkamonSessions.get(sceneId);
+        for (AkkamonSession session : sessionsInScene) {
+            session.send(message);
         }
     }
 
     @Override
-    public void broadCastGridPosition() {
+    public void registerTrainerSessionToScene(String sceneId, AkkamonSession session) {
+        sceneIdToAkkamonSessions.get(sceneId).add(session);
+        session.setTrainerId(sceneId);
+        heartBeat();
     }
 
     @Override
-    public void registerTrainerSession(String trainerId, AkkamonSession session) {
-        trainerIdToAkkamonSessions.put(trainerId, session);
-    }
-
-    @Override
-    public void removeTrainerSession(String trainerId, AkkamonSession session) {
+    public void removeTrainerSessionFromScene(String sceneId, AkkamonSession session) {
 
     }
 
     void incoming(AkkamonSession session, String message) {
         Event event = gson.fromJson(message, Event.class);
-        String trainerId = String.valueOf(trainerIdToAkkamonSessions.size());
+        // TODO use session trainerId
         String sceneId = "akkamonStartScene";
 
         switch (event.type) {
             case START_MOVING:
                 system.tell(new AkkamonNexus.RequestStartMoving(
                         UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE,
-                        "0",
+                        session.getTrainerId(),
                         event.sceneId,
-                        event.direction
+                        event.direction,
+                        system
                 ));
                 break;
+            case NEW_TILE_POS:
+                system.tell(
+                        new AkkamonNexus.RequestNewTilePos(
+                                UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE,
+                                session.getTrainerId(),
+                                event.sceneId,
+                                event.tilePos,
+                                system
+                        )
+                );
+                break;
+            case STOP_MOVING:
+                system.tell(
+                        new AkkamonNexus.RequestStopMoving(
+                            UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE,
+                            session.getTrainerId(),
+                            event.sceneId,
+                            event.direction,
+                            system
+                        )
+                );
+                break;
             case TRAINER_REGISTRATION:
-
+                String trainerId = String.valueOf(sceneIdToAkkamonSessions.size());
                 system.tell(new AkkamonNexus.RequestTrainerRegistration(
                         trainerId,
                         sceneId,
@@ -82,7 +109,7 @@ public class MessagingEngine implements AkkamonMessageEngine {
                 ));
                 break;
             case HEART_BEAT:
-                System.out.println("My heart goes boom skip!");
+                //System.out.println("My <3 beats!");
                 break;
         }
 

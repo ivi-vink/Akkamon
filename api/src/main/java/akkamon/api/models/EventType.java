@@ -10,5 +10,13 @@ public enum EventType {
     HEART_BEAT,
 
     @SerializedName("StartMoving")
-    START_MOVING
+    START_MOVING,
+
+    @SerializedName("NewTilePos")
+    NEW_TILE_POS,
+
+    @SerializedName("StopMoving")
+    STOP_MOVING,
+
+
 }

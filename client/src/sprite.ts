@@ -63,4 +63,8 @@ export class PlayerSprite extends Phaser.GameObjects.Sprite implements AkkamonPl
     setTilePos(tilePosition: Phaser.Math.Vector2): void {
         this.tilePos = tilePosition.clone();
     }
+
+    getScene(): string {
+        return this.scene.scene.key;
+    }
 }

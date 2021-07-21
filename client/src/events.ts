@@ -6,7 +6,9 @@ import type { Direction } from './Direction';
 export enum EventType {
     HEART_BEAT = "HeartBeat",
     PLAYER_REGISTRATION = "PlayerRegistrationEvent",
-    START_MOVING =  "StartMoving"
+    START_MOVING =  "StartMoving",
+    STOP_MOVING = "StopMoving",
+    NEW_TILE_POS = "NewTilePos"
 }
 
 export interface AkkamonEvent {
@@ -26,7 +28,28 @@ export class StartMovingEvent implements AkkamonEvent {
     public type: EventType = EventType.START_MOVING;
 
     constructor(
+        public sceneId: string,
         public direction: Direction,
+    ) { }
+}
+
+export class StopMovingEvent implements AkkamonEvent {
+
+    public type: EventType = EventType.STOP_MOVING;
+
+    constructor(
+        public sceneId: string,
+        public direction: Direction,
+    ) { }
+}
+
+export class NewTilePosEvent implements AkkamonEvent {
+
+    public type: EventType = EventType.NEW_TILE_POS;
+
+    constructor(
+        public sceneId: string,
+        public tilePos: {x: number, y: number}
     ) { }
 }
 

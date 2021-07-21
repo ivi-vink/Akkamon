@@ -15,7 +15,8 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
 
     public interface Command {}
 
-    public static class RequestTrainerRegistration implements AkkamonNexus.Command, SceneTrainerGroup.Command {
+    public static class RequestTrainerRegistration
+            implements AkkamonNexus.Command, SceneTrainerGroup.Command {
         public String trainerId;
         public String sceneId;
         public AkkamonSession session;
@@ -47,18 +48,102 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
         }
     }
 
-    public static class RequestStartMoving implements Command, SceneTrainerGroup.Command {
+    public static class RequestStartMoving
+            implements Command, SceneTrainerGroup.Command, Trainer.Command {
         public long requestId;
-        public String trainerid;
+        public String trainerId;
         public String sceneId;
         public Direction direction;
+        public ActorRef<AkkamonNexus.Command> replyTo;
 
-        public RequestStartMoving(long requestId, String trainerid, String sceneId, Direction direction) {
+        public RequestStartMoving(long requestId, String trainerId, String sceneId, Direction direction, ActorRef<AkkamonNexus.Command> replyTo) {
             this.requestId = requestId;
-            this.trainerid = trainerid;
+            this.trainerId = trainerId;
             this.sceneId = sceneId;
             this.direction = direction;
+            this.replyTo = replyTo;
         }
+    }
+
+    public static class RequestStopMoving
+            implements Command, SceneTrainerGroup.Command, Trainer.Command  {
+        public long requestId;
+        public String trainerId;
+        public String sceneId;
+        public Direction direction;
+        public ActorRef<AkkamonNexus.Command> replyTo;
+
+        public RequestStopMoving(
+                long requestId,
+                String trainerId,
+                String sceneId,
+                Direction direction,
+                ActorRef<AkkamonNexus.Command> replyTo) {
+            this.requestId = requestId;
+            this.trainerId = trainerId;
+            this.sceneId = sceneId;
+            this.direction = direction;
+            this.replyTo = replyTo;
+        }
+    }
+
+    public static class RequestNewTilePos
+            implements Command, SceneTrainerGroup.Command, Trainer.Command {
+        public long requestId;
+        public String trainerId;
+        public String sceneId;
+        public TilePos tilePos;
+        public ActorRef<AkkamonNexus.Command> replyTo;
+
+        public RequestNewTilePos(long requestId, String trainerId, String sceneId, TilePos tilePos, ActorRef<Command> replyTo) {
+            this.requestId = requestId;
+            this.trainerId = trainerId;
+            this.sceneId = sceneId;
+            this.tilePos = tilePos;
+            this.replyTo = replyTo;
+        }
+    }
+
+    public static class RequestHeartBeat
+            implements Command, SceneTrainerGroup.Command {
+
+        public long requestId;
+        public ActorRef<AkkamonNexus.Command> replyTo;
+
+        public RequestHeartBeat(long requestId, ActorRef<AkkamonNexus.Command> replyTo) {
+            this.requestId = requestId;
+            this.replyTo = replyTo;
+        }
+    }
+
+    public static class RespondHeartBeatQuery implements Command {
+
+    }
+
+    public interface TrainerPositionReading { }
+
+    public static class TrainerPosition implements TrainerPositionReading {
+        public final TilePos value;
+
+        public TrainerPosition(TilePos value) {
+            this.value = value;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            TrainerPosition other = (TrainerPosition) o;
+
+            return this.value.x == other.value.x && this.value.y == other.value.y;
+        }
+
+        @Override
+        public String toString() {
+            return "TrainerPosition={x: " + value.x + ", " + value.y + "}";
+        }
+
     }
 
     private static class SceneTrainerGroupTerminated implements AkkamonNexus.Command {
@@ -82,21 +167,59 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
     @Override
     public Receive<Command> createReceive() {
         return newReceiveBuilder()
-                .onMessage(
-                        RequestTrainerRegistration.class,
-                        this::onTrainerRegistration
-                )
-                .onMessage(
-                        TrainerRegistered.class,
-                        this::onTrainerRegistered
-                )
+                .onMessage(RequestTrainerRegistration.class, this::onTrainerRegistration)
+                .onMessage(TrainerRegistered.class, this::onTrainerRegistered)
+                .onMessage(RequestHeartBeat.class, this::onHeartBeat)
+                .onMessage(RequestStartMoving.class, this::onStartMoving)
+                .onMessage(RequestStopMoving.class, this::onStopMoving)
+                .onMessage(RequestNewTilePos.class, this::onNewTilePos)
                 .build();
+    }
+
+    private AkkamonNexus onHeartBeat(RequestHeartBeat heartBeatRequest) {
+        return this;
+    }
+
+    private AkkamonNexus onNewTilePos(RequestNewTilePos newTilePosRequest) {
+        ActorRef<SceneTrainerGroup.Command> sceneTrainerGroup = sceneIdToActor.get(
+                newTilePosRequest.sceneId
+        );
+        if (sceneTrainerGroup != null) {
+            sceneTrainerGroup.tell(newTilePosRequest);
+        } else {
+            getContext().getLog().info("Ignoring newTilePos request in scene {}, it isn't mapped to a sceneTrainerActor.");
+        }
+        return this;
+    }
+
+    private AkkamonNexus onStopMoving(RequestStopMoving stopMovingRequest) {
+        ActorRef<SceneTrainerGroup.Command> sceneTrainerGroup = sceneIdToActor.get(
+                stopMovingRequest.sceneId
+        );
+        if (sceneTrainerGroup != null) {
+            sceneTrainerGroup.tell(stopMovingRequest);
+        } else {
+            getContext().getLog().info("Ignoring stopMove request in scene {}, it isn't mapped to a sceneTrainerActor.");
+        }
+        return this;
+    }
+
+    private AkkamonNexus onStartMoving(RequestStartMoving startMovingRequest) {
+        ActorRef<SceneTrainerGroup.Command> sceneTrainerGroup = sceneIdToActor.get(
+                startMovingRequest.sceneId
+        );
+        if (sceneTrainerGroup != null) {
+            sceneTrainerGroup.tell(startMovingRequest);
+        } else {
+            getContext().getLog().info("Ignoring stopMove request in scene {}, it isn't mapped to a sceneTrainerActor.");
+        }
+        return this;
     }
 
     private AkkamonNexus onTrainerRegistered(TrainerRegistered reply) {
         // TODO test when registration fails?
         getContext().getLog().info("Adding {} to Live AkkamonSessions in Messaging Engine", reply.trainerId);
-        messageEngine.registerTrainerSession(reply.trainerId, reply.session);
+        messageEngine.registerTrainerSessionToScene(reply.trainerId, reply.session);
         return this;
     }
 
@@ -120,6 +243,5 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
         }
         return this;
     }
-
 
 }

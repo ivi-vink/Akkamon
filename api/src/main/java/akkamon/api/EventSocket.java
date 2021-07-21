@@ -10,6 +10,7 @@ import java.util.concurrent.CountDownLatch;
 
 public class EventSocket extends WebSocketAdapter implements AkkamonSession {
     private final CountDownLatch closureLatch = new CountDownLatch(1);
+    private String trainerId;
 
     @Override
     public void onWebSocketConnect(Session sess)
@@ -22,7 +23,6 @@ public class EventSocket extends WebSocketAdapter implements AkkamonSession {
     public void onWebSocketText(String message)
     {
         super.onWebSocketText(message);
-        System.out.println("Received TEXT message: " + message);
         App.messagingEngine.incoming(this, message);
 
     }
@@ -55,5 +55,15 @@ public class EventSocket extends WebSocketAdapter implements AkkamonSession {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void setTrainerId(String trainerId) {
+        this.trainerId = trainerId;
+    }
+
+    @Override
+    public String getTrainerId() {
+        return trainerId;
     }
 }

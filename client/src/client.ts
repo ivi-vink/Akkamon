@@ -26,8 +26,8 @@ export class Client
 
     in(eventString: string) {
         let event: AkkamonEvent = JSON.parse(eventString);
-        // console.log("-> client is handling incoming event:");
-        // console.log(event);
+        console.log("-> client is handling incoming event:");
+        console.log(event);
         switch (event.type) {
             case EventType.HEART_BEAT:
                 this.send(new HeartBeatReplyEvent());

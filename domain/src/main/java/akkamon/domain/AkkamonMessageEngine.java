@@ -2,9 +2,9 @@ package akkamon.domain;
 
 public interface AkkamonMessageEngine {
     // broadcasts position info to WebSocket Clients
-    void broadCastGridPosition();
+    void broadCastToScene(String sceneId, String message);
 
-    void registerTrainerSession(String trainerId, AkkamonSession session);
+    void registerTrainerSessionToScene(String sceneId, AkkamonSession session);
 
-    void removeTrainerSession(String trainerId, AkkamonSession session);
+    void removeTrainerSessionFromScene(String sceneId, AkkamonSession session);
 }
