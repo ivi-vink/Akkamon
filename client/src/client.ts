@@ -33,9 +33,6 @@ export class Client
                 }
                 this.send(new HeartBeatReplyEvent());
                 break;
-            case EventType.PLAYERS_NEARBY:
-                this.ui.setPlayersNearby();
-                break;
             default:
                 console.log("ignored incoming event, doesn't match EventType interface.");
                 break;
