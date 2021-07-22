@@ -18,5 +18,7 @@ public enum EventType {
     @SerializedName("StopMoving")
     STOP_MOVING,
 
+    @SerializedName("SocketClosed")
+    SOCKET_CLOSED,
 
 }

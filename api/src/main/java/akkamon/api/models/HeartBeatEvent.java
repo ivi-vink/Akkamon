@@ -5,10 +5,10 @@ import akkamon.domain.AkkamonNexus;
 import java.util.Map;
 
 public class HeartBeatEvent extends Event {
-    public Map<String, AkkamonNexus.TrainerPositionReading> remoteTrainerPositions;
+    public Map<String, AkkamonNexus.MovementQueueReading> remoteMovementQueues;
 
-    public HeartBeatEvent(Map<String, AkkamonNexus.TrainerPositionReading> remoteTrainerPositions) {
+    public HeartBeatEvent(Map<String, AkkamonNexus.MovementQueueReading> remoteMovementQueues) {
         this.type = EventType.HEART_BEAT;
-        this.remoteTrainerPositions = remoteTrainerPositions;
+        this.remoteMovementQueues = remoteMovementQueues;
     }
 }

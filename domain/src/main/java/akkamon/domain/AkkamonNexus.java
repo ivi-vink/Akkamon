@@ -10,6 +10,7 @@ import akka.actor.typed.javadsl.Receive;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Queue;
 
 public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
 
@@ -126,57 +127,71 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
         }
     }
 
+    public static class RequestTrainerOffline
+            implements Command, SceneTrainerGroup.Command, Trainer.Command {
+        public long requestId;
+        public String trainerId;
+        public String sceneId;
+        public AkkamonSession session;
+        public ActorRef<AkkamonNexus.Command> replyTo;
+
+        public RequestTrainerOffline(long requestId, String trainerId, String sceneId, AkkamonSession session, ActorRef<Command> replyTo) {
+            this.requestId = requestId;
+            this.trainerId = trainerId;
+            this.sceneId = sceneId;
+            this.session = session;
+            this.replyTo = replyTo;
+        }
+    }
+
+    public static class RespondTrainerOffline
+            implements Command {
+        public long requestId;
+        public String sceneId;
+        public AkkamonSession session;
+
+        public RespondTrainerOffline(long requestId, String sceneId, AkkamonSession session) {
+            this.requestId = requestId;
+            this.sceneId = sceneId;
+            this.session = session;
+        }
+    }
+
     public static class RespondHeartBeatQuery implements Command {
 
         public final long requestId;
         public final String sceneId;
-        public final Map<String, TrainerPositionReading> trainerPositions;
+        public final Map<String, MovementQueueReading> trainerMovementQueues;
 
         public RespondHeartBeatQuery(
                 long requestId,
                 String sceneId,
-                Map<String, TrainerPositionReading> trainerPositions) {
+                Map<String, MovementQueueReading> trainerPositions) {
             this.requestId = requestId;
             this.sceneId = sceneId;
-            this.trainerPositions = trainerPositions;
+            this.trainerMovementQueues = trainerPositions;
         }
     }
 
-    public interface TrainerPositionReading { }
+    public interface MovementQueueReading { }
 
-    public static class TrainerPosition implements TrainerPositionReading {
-        public final TilePos value;
+    public static class MovementQueue implements MovementQueueReading {
+        public final Queue<Direction> value;
 
-        public TrainerPosition(TilePos value) {
+        public MovementQueue(Queue<Direction> value) {
             this.value = value;
         }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            TrainerPosition other = (TrainerPosition) o;
-
-            return this.value.x == other.value.x && this.value.y == other.value.y;
-        }
-
-        @Override
-        public String toString() {
-            return "TrainerPosition={x: " + value.x + ", y: " + value.y + "}";
-        }
-
     }
 
-    public enum TrainerPositionNotAvailable implements TrainerPositionReading {
+    public enum MovementQueueEmpty implements MovementQueueReading {
         INSTANCE
     }
 
-    public enum TrainerOffline implements TrainerPositionReading {
+    public enum TrainerOffline implements MovementQueueReading {
         INSTANCE
     }
 
-    public enum TrainerTimedOut implements TrainerPositionReading {
+    public enum TrainerTimedOut implements MovementQueueReading {
         INSTANCE
     }
 
@@ -198,6 +213,8 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
         return newReceiveBuilder()
                 .onMessage(RequestTrainerRegistration.class, this::onTrainerRegistration)
                 .onMessage(TrainerRegistered.class, this::onTrainerRegistered)
+                .onMessage(RequestTrainerOffline.class, this::onTrainerOfflineRequest)
+                .onMessage(RespondTrainerOffline.class, this::onTrainerOffline)
                 .onMessage(RequestHeartBeat.class, this::onHeartBeat)
                 .onMessage(RespondHeartBeatQuery.class, this::onHeartBeatQueryResponse)
                 .onMessage(RequestStartMoving.class, this::onStartMoving)
@@ -206,19 +223,37 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
                 .build();
     }
 
+    private AkkamonNexus onTrainerOffline(RespondTrainerOffline trainerOfflineMsg) {
+        getContext().getLog().info("Removing {} from akkamon sessions!", trainerOfflineMsg.session.getTrainerId());
+        messageEngine.removeTrainerSessionFromScene(trainerOfflineMsg.sceneId, trainerOfflineMsg.session);
+        return this;
+    }
+
+    private AkkamonNexus onTrainerOfflineRequest(RequestTrainerOffline trainerOfflineRequest) {
+        ActorRef<SceneTrainerGroup.Command> sceneTrainerGroup = sceneIdToActor.get(
+                trainerOfflineRequest.sceneId
+        );
+        if (sceneTrainerGroup != null) {
+            sceneTrainerGroup.tell(trainerOfflineRequest);
+        } else {
+            getContext().getLog().info("Ignoring trainerOffline request in scene {}, it isn't mapped to a sceneTrainerActor.");
+        }
+        return this;
+    }
+
     private AkkamonNexus onHeartBeatQueryResponse(RespondHeartBeatQuery response) {
         // Turn on for logging
 
 
         StringBuilder positions = new StringBuilder();
         positions.append("\n" + response.sceneId.toUpperCase(Locale.ROOT) + "\n");
-        for (Map.Entry<String, TrainerPositionReading> entry : response.trainerPositions.entrySet()) {
+        for (Map.Entry<String, MovementQueueReading> entry : response.trainerMovementQueues.entrySet()) {
             positions.append(entry.getKey() + ": " +entry.getValue());
             positions.append("\n");
         }
         getContext().getLog().info(String.valueOf(positions));
 
-        messageEngine.broadCastHeartBeatToScene(response.sceneId, response.trainerPositions);
+        messageEngine.broadCastHeartBeatToScene(response.sceneId, response.trainerMovementQueues);
 
        return this;
     }

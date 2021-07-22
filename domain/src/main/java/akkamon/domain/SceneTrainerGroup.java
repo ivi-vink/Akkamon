@@ -15,15 +15,18 @@ public class SceneTrainerGroup extends AbstractBehavior<SceneTrainerGroup.Comman
 
     public interface Command { }
 
-    private class TrainerOffline implements Command {
+    public static class TrainerOffline
+            implements Command, AkkamonNexus.Command {
         public ActorRef<Trainer.Command> trainer;
         public String sceneId;
         public String trainerId;
+        public ActorRef<AkkamonNexus.Command> replyTo;
 
-        public TrainerOffline(ActorRef<Trainer.Command> trainerActor, String sceneId, String trainerId) {
+        public TrainerOffline(ActorRef<Trainer.Command> trainerActor, String sceneId, String trainerId, ActorRef<AkkamonNexus.Command> replyTo) {
             this.trainer = trainerActor;
             this.sceneId = sceneId;
             this.trainerId = trainerId;
+            this.replyTo = replyTo;
         }
     }
 
@@ -50,6 +53,14 @@ public class SceneTrainerGroup extends AbstractBehavior<SceneTrainerGroup.Comman
                         this::onTrainerRegistration
                 )
                 .onMessage(
+                        AkkamonNexus.RequestTrainerOffline.class,
+                        this::onTrainerOfflineRequest
+                )
+                .onMessage(
+                        TrainerOffline.class,
+                        this::onWatchedTrainerOffline
+                )
+                .onMessage(
                         AkkamonNexus.RequestStartMoving.class,
                         this::onStartMoving
                 )
@@ -66,6 +77,41 @@ public class SceneTrainerGroup extends AbstractBehavior<SceneTrainerGroup.Comman
                         this::onHeartBeat
                 )
                 .build();
+    }
+
+    private SceneTrainerGroup onWatchedTrainerOffline(TrainerOffline trainerOfflineMsg) {
+        trainerOfflineMsg.replyTo.tell(trainerOfflineMsg);
+        trainerIdToActor.remove(trainerOfflineMsg.trainerId);
+        return this;
+    }
+
+    private SceneTrainerGroup onTrainerOfflineRequest(AkkamonNexus.RequestTrainerOffline trainerOfflineRequest) {
+        if (this.sceneId.equals(trainerOfflineRequest.sceneId)) {
+            ActorRef<Trainer.Command> trainerActor = trainerIdToActor.get(trainerOfflineRequest.trainerId);
+            if (trainerActor != null) {
+                trainerActor.tell(trainerOfflineRequest);
+                trainerOfflineRequest.replyTo.tell(new AkkamonNexus.RespondTrainerOffline(
+                        trainerOfflineRequest.requestId,
+                        trainerOfflineRequest.sceneId,
+                        trainerOfflineRequest.session
+                ));
+            } else {
+                getContext()
+                        .getLog()
+                        .warn(
+                                "Ignoring trainerOffline for trainerId {}. There is no actor mapped to it.",
+                                trainerOfflineRequest.trainerId
+                        );
+            }
+        } else {
+            getContext()
+                    .getLog()
+                    .warn(
+                            "Ignoring trainerOffline for {}. This actor is responsible for {}.",
+                            trainerOfflineRequest.sceneId,
+                            this.sceneId);
+        }
+        return this;
     }
 
     private SceneTrainerGroup onHeartBeat(AkkamonNexus.RequestHeartBeat heartBeatRequest) {
@@ -171,7 +217,7 @@ public class SceneTrainerGroup extends AbstractBehavior<SceneTrainerGroup.Comman
                         getContext()
                                 .spawn(Trainer.create(sceneId, registrationRequest.trainerId), "trainer-" + registrationRequest.trainerId);
                 getContext()
-                        .watchWith(trainerActor, new SceneTrainerGroup.TrainerOffline(trainerActor, sceneId, registrationRequest.trainerId));
+                        .watchWith(trainerActor, new SceneTrainerGroup.TrainerOffline(trainerActor, sceneId, registrationRequest.trainerId, registrationRequest.replyTo));
                 trainerIdToActor.put(registrationRequest.trainerId, trainerActor);
                 registrationRequest.replyTo.tell(new AkkamonNexus.TrainerRegistered(
                         registrationRequest.trainerId,

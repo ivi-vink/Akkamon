@@ -1,6 +1,4 @@
 import Phaser from 'phaser';
-import type { Player } from './player';
-import type { GameState } from './GameState';
 import type { Direction } from './Direction';
 
 export enum EventType {
@@ -13,6 +11,16 @@ export enum EventType {
 
 export interface AkkamonEvent {
     type: EventType
+}
+
+export type TrainerPosition = { x: number, y: number }
+
+export type RemoteMovementQueues = {
+    [trainerId: string]: { value: Array<Direction> }
+}
+
+export interface IncomingEvent extends AkkamonEvent {
+    remoteMovementQueues?: RemoteMovementQueues
 }
 
 export class PlayerRegistrationEvent implements AkkamonEvent {

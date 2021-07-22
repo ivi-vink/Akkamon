@@ -1,6 +1,4 @@
 import Phaser from 'phaser';
-import { akkamonClient } from './app';
-import { Player } from './player';
 import { PlayerSprite } from './sprite';
 
 import { GridControls } from './GridControls';
@@ -9,10 +7,7 @@ import { Direction } from './Direction';
 
 import { RemotePlayerEngine } from './RemotePlayerEngine';
 
-
-type RemotePlayerStates = {
-    [name: string]: Player
-}
+import { akkamonClient } from './app';
 
 export default class AkkamonStartScene extends Phaser.Scene
 {
@@ -24,6 +19,11 @@ export default class AkkamonStartScene extends Phaser.Scene
 
     private remotePlayerEngine?: RemotePlayerEngine
 
+    public spawnPointTilePos?: {
+        x: number,
+        y: number
+    };
+
     directionToAnimation: {
         [key in Direction]: string
     } = {
@@ -34,7 +34,6 @@ export default class AkkamonStartScene extends Phaser.Scene
         [Direction.NONE]: "misa-front-walk"
     }
 
-    remotePlayerSprites: {[name: string]: PlayerSprite} = {};
     spawnPoint: Phaser.Types.Tilemaps.TiledObject | undefined;
 
 
@@ -88,19 +87,15 @@ export default class AkkamonStartScene extends Phaser.Scene
                 Math.floor(this.spawnPoint.x! / AkkamonStartScene.TILE_SIZE),
                 Math.floor(this.spawnPoint.y! / AkkamonStartScene.TILE_SIZE),
                 );
+        this.spawnPointTilePos = tilePos;
 
         let player = new PlayerSprite({
             scene: this,
             tilePos: tilePos,
             texture: this.textures.get("atlas"),
             frame: "misa-front",
-            player: new Player({
-                trainerId: 'ash',
-                position: tilePos
-            })// this.akkamonState.getLocalMutablePlayerState(),
         });
 
-        this.add.existing(player);
         this.gridPhysics = new GridPhysics(player, map);
         this.gridControls = new GridControls(
             this.input,
@@ -108,6 +103,7 @@ export default class AkkamonStartScene extends Phaser.Scene
         );
 
         this.remotePlayerEngine = new RemotePlayerEngine(this);
+        akkamonClient.setRemotePlayerEngine(this.remotePlayerEngine);
 
         this.createPlayerAnimation(Direction.LEFT, 0, 3);
         this.createPlayerAnimation(Direction.RIGHT, 0, 3);
@@ -120,12 +116,14 @@ export default class AkkamonStartScene extends Phaser.Scene
         camera.roundPixels = true;
         camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
+        this.scene.launch('AkkamonUI');
     }
 
 
     update(time: number, delta: number) {
         this.gridControls!.update();
         this.gridPhysics!.update(delta);
+        this.remotePlayerEngine!.update(delta);
     }
 
     private createPlayerAnimation(direction: Direction, start: number, end: number) {

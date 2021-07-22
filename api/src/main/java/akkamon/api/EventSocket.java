@@ -33,6 +33,7 @@ public class EventSocket extends WebSocketAdapter implements AkkamonSession {
         super.onWebSocketClose(statusCode, reason);
         System.out.println("Socket Closed: [" + statusCode + "] " + reason);
         closureLatch.countDown();
+        App.messagingEngine.trainerDisconnected(this);
     }
 
     @Override

@@ -1,10 +1,13 @@
 import type AkkamonSession from './session';
-import type { GameState } from './GameState';
 import { Socket } from './socket';
+import type { GridPhysics } from './GridPhysics';
+import type { RemotePlayerEngine } from './RemotePlayerEngine';
+
 import {
     EventType,
     HeartBeatReplyEvent,
-    AkkamonEvent
+    IncomingEvent,
+    AkkamonEvent,
 } from './events';
 
 
@@ -12,7 +15,8 @@ export class Client
 {
 
     private session: AkkamonSession;
-    private akkamonState?: GameState;
+    private gridPhysics?: GridPhysics;
+    private remotePlayerEngine?: RemotePlayerEngine;
 
     constructor(
         url: string
@@ -20,17 +24,20 @@ export class Client
         this.session = new Socket(url, this);
     }
 
-    getMutableState(): GameState {
-        return this.akkamonState!;
-    }
-
     in(eventString: string) {
-        let event: AkkamonEvent = JSON.parse(eventString);
-        console.log("-> client is handling incoming event:");
-        console.log(event);
+        let event: IncomingEvent = JSON.parse(eventString);
         switch (event.type) {
             case EventType.HEART_BEAT:
+                if (this.remotePlayerEngine !== undefined) {
+                    this.remotePlayerEngine.push(event.remoteMovementQueues!);
+                }
                 this.send(new HeartBeatReplyEvent());
+                break;
+            case EventType.PLAYERS_NEARBY:
+                this.ui.setPlayersNearby();
+                break;
+            default:
+                console.log("ignored incoming event, doesn't match EventType interface.");
                 break;
         }
     }
@@ -42,4 +49,9 @@ export class Client
             this.session.send(JSON.stringify(event));
         }
     }
+
+    setRemotePlayerEngine(engine: RemotePlayerEngine) {
+        this.remotePlayerEngine = engine;
+    }
+
 }

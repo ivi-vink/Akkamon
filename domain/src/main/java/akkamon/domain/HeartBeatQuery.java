@@ -5,10 +5,7 @@ import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.*;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class HeartBeatQuery extends AbstractBehavior<HeartBeatQuery.Command> {
 
@@ -18,11 +15,11 @@ public class HeartBeatQuery extends AbstractBehavior<HeartBeatQuery.Command> {
         INSTANCE
     }
 
-    static class WrappedRespondTrainerPosition implements Command {
-        final Trainer.RespondTrainerPosition response;
+    static class WrappedRespondMovementQueue implements Command {
+        final Trainer.RespondMovementQueue response;
 
-        WrappedRespondTrainerPosition(
-                Trainer.RespondTrainerPosition response
+        WrappedRespondMovementQueue(
+                Trainer.RespondMovementQueue response
         ) {
             this.response = response;
         }
@@ -62,7 +59,7 @@ public class HeartBeatQuery extends AbstractBehavior<HeartBeatQuery.Command> {
     private final long requestId;
     private final String sceneId;
     private final ActorRef<AkkamonNexus.Command> requester;
-    private Map<String, AkkamonNexus.TrainerPositionReading> repliesSoFar = new HashMap<String, AkkamonNexus.TrainerPositionReading>();
+    private Map<String, AkkamonNexus.MovementQueueReading> repliesSoFar = new HashMap<String, AkkamonNexus.MovementQueueReading>();
     private final Set<String> stillWaiting;
 
     public HeartBeatQuery(
@@ -80,13 +77,13 @@ public class HeartBeatQuery extends AbstractBehavior<HeartBeatQuery.Command> {
 
         timers.startSingleTimer(CollectionTimeout.INSTANCE, timeout);
 
-        ActorRef<Trainer.RespondTrainerPosition> respondTrainerPositionAdapter =
-                context.messageAdapter(Trainer.RespondTrainerPosition.class, WrappedRespondTrainerPosition::new);
+        ActorRef<Trainer.RespondMovementQueue> respondTrainerPositionAdapter =
+                context.messageAdapter(Trainer.RespondMovementQueue.class, WrappedRespondMovementQueue::new);
 
         for (Map.Entry<String, ActorRef<Trainer.Command>> entry : trainerIdToActor.entrySet()) {
             context.watchWith(entry.getValue(), new TrainerOffline(entry.getKey()));
             entry.getValue().tell(
-                    new Trainer.ReadTrainerPosition(
+                    new Trainer.ReadMovementQueue(
                             0L,
                             respondTrainerPositionAdapter
                     )
@@ -98,19 +95,22 @@ public class HeartBeatQuery extends AbstractBehavior<HeartBeatQuery.Command> {
     @Override
     public Receive<Command> createReceive() {
         return newReceiveBuilder()
-                .onMessage(WrappedRespondTrainerPosition.class, this::onRespondTrainerPosition)
+                .onMessage(WrappedRespondMovementQueue.class, this::onRespondMovementQueue)
                 .build();
     }
 
-    private Behavior<Command> onRespondTrainerPosition(WrappedRespondTrainerPosition r) {
-        AkkamonNexus.TrainerPositionReading trainerPositionRead =
-                r.response
-                .value
-                .map(optionalValue -> (AkkamonNexus.TrainerPositionReading) new AkkamonNexus.TrainerPosition(optionalValue))
-                .orElse(AkkamonNexus.TrainerPositionNotAvailable.INSTANCE);
+    private Behavior<Command> onRespondMovementQueue(WrappedRespondMovementQueue r) {
+        AkkamonNexus.MovementQueueReading movementQueueRead = null;
+        if (r.response.value.size() != 0) {
+            movementQueueRead = new AkkamonNexus.MovementQueue(r.response.value);
+        } else {
+            Queue<Direction> queue = new LinkedList<>();
+            queue.add(Direction.NONE);
+            movementQueueRead = new AkkamonNexus.MovementQueue(queue);
+        }
 
         String trainerId = r.response.trainerId;
-        repliesSoFar.put(trainerId, trainerPositionRead);
+        repliesSoFar.put(trainerId, movementQueueRead);
         stillWaiting.remove(trainerId);
 
         return respondWhenAllCollected();

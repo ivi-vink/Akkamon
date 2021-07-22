@@ -42,13 +42,13 @@ public class MessagingEngine implements AkkamonMessageEngine {
 
     @Override
     public void broadCastHeartBeatToScene(String sceneId,
-                                          Map<String, AkkamonNexus.TrainerPositionReading> trainerPositions) {
+                                          Map<String, AkkamonNexus.MovementQueueReading> trainerPositions) {
         Set<AkkamonSession> sceneSessions = sceneIdToAkkamonSessions.get(sceneId);
         System.out.println(sceneSessions);
         System.out.println(sceneIdToAkkamonSessions.keySet());
         if (sceneSessions != null) {
             for (AkkamonSession session : sceneSessions) {
-                Map<String, AkkamonNexus.TrainerPositionReading> withoutSelf = new HashMap<>(trainerPositions);
+                Map<String, AkkamonNexus.MovementQueueReading> withoutSelf = new HashMap<>(trainerPositions);
                 withoutSelf.remove(session.getTrainerId());
                 HeartBeatEvent heartBeat = new HeartBeatEvent(
                         withoutSelf
@@ -82,7 +82,23 @@ public class MessagingEngine implements AkkamonMessageEngine {
 
     @Override
     public void removeTrainerSessionFromScene(String sceneId, AkkamonSession session) {
+        this.sceneIdToAkkamonSessions.get(sceneId).remove(session);
+    }
 
+    @Override
+    public void trainerDisconnected(AkkamonSession session) {
+        String sceneId = null;
+        for (Map.Entry<String, Set<AkkamonSession>> entry : this.sceneIdToAkkamonSessions.entrySet()) {
+            if (entry.getValue().contains(session)) sceneId = entry.getKey();
+        }
+
+        system.tell(new AkkamonNexus.RequestTrainerOffline(
+                UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE,
+                session.getTrainerId(),
+                sceneId,
+                session,
+                system
+                ));
     }
 
     void incoming(AkkamonSession session, String message) {
@@ -123,7 +139,7 @@ public class MessagingEngine implements AkkamonMessageEngine {
                 );
                 break;
             case TRAINER_REGISTRATION:
-                String trainerId = String.valueOf(sceneIdToAkkamonSessions.size());
+                String trainerId = String.valueOf(sceneIdToAkkamonSessions.get(sceneId) == null ? 0 : sceneIdToAkkamonSessions.get(sceneId).size() + 1);
                 system.tell(new AkkamonNexus.RequestTrainerRegistration(
                         trainerId,
                         sceneId,
@@ -141,5 +157,4 @@ public class MessagingEngine implements AkkamonMessageEngine {
     private void updatePositions() {
 
     }
-
 }

@@ -7,31 +7,33 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 
+import java.util.LinkedList;
 import java.util.Optional;
+import java.util.Queue;
 
 public class Trainer extends AbstractBehavior<Trainer.Command> {
 
     public interface Command { }
 
-    public static class ReadTrainerPosition implements Command {
+    public static class ReadMovementQueue implements Command {
         final long requestId;
-        final ActorRef<RespondTrainerPosition> replyTo;
+        final ActorRef<RespondMovementQueue> replyTo;
 
-        public ReadTrainerPosition(long requestId, ActorRef<RespondTrainerPosition> replyTo) {
+        public ReadMovementQueue(long requestId, ActorRef<RespondMovementQueue> replyTo) {
             this.requestId = requestId;
             this.replyTo = replyTo;
         }
     }
 
-    public static final class RespondTrainerPosition {
+    public static final class RespondMovementQueue {
         final long requestId;
         final String trainerId;
-        final Optional<TilePos> value;
+        final Queue<Direction> value;
 
-        public RespondTrainerPosition(
+        public RespondMovementQueue(
                 long requestId,
                 String trainerId,
-                Optional<TilePos> value
+                Queue<Direction> value
         ) {
             this.requestId = requestId;
             this.trainerId = trainerId;
@@ -46,6 +48,10 @@ public class Trainer extends AbstractBehavior<Trainer.Command> {
     private String sceneId;
     private String trainerId;
 
+    private Queue<Direction> movementQueue = new LinkedList<>();
+
+    private Direction movementDirection = Direction.NONE;
+
     private Optional<TilePos> lastValidTilePos = Optional.empty();
 
     public Trainer(ActorContext<Command> context, String sceneId, String trainerId) {
@@ -58,8 +64,12 @@ public class Trainer extends AbstractBehavior<Trainer.Command> {
     public Receive<Command> createReceive() {
         return newReceiveBuilder()
                 .onMessage(
-                        ReadTrainerPosition.class,
-                        this::onReadTrainerPosition
+                        ReadMovementQueue.class,
+                        this::onReadMovementQueue
+                )
+                .onMessage(
+                        AkkamonNexus.RequestTrainerOffline.class,
+                        this::onTrainerOffline
                 )
                 .onMessage(
                         AkkamonNexus.RequestStartMoving.class,
@@ -75,29 +85,42 @@ public class Trainer extends AbstractBehavior<Trainer.Command> {
                 .build();
     }
 
-    private Trainer onReadTrainerPosition(ReadTrainerPosition readTrainerPositionRequest) {
-        readTrainerPositionRequest.replyTo.tell(new RespondTrainerPosition(
+    private Behavior<Command> onTrainerOffline(AkkamonNexus.RequestTrainerOffline trainerOfflineRequest) {
+        getContext().getLog().info("Trainer {} went offline, the actor has stopped! My supervisor should handle closing my connection!");
+        return Behaviors.stopped();
+    }
+
+    private Trainer onReadMovementQueue(ReadMovementQueue readTrainerPositionRequest) {
+        readTrainerPositionRequest.replyTo.tell(new RespondMovementQueue(
                 readTrainerPositionRequest.requestId,
                 trainerId,
-                lastValidTilePos
+                new LinkedList<>(movementQueue)
         ));
+        this.movementQueue.clear();
         return this;
     }
 
     private Trainer onNewTilePos(AkkamonNexus.RequestNewTilePos newTilePosRequest) {
         getContext().getLog().info("Trainer {} has new {}.", trainerId, newTilePosRequest.tilePos);
-        lastValidTilePos = Optional.of(newTilePosRequest.tilePos);
+        if (isMoving()) {
+            this.movementQueue.add(this.movementDirection);
+        }
         return this;
     }
 
     private Trainer onStopMoving(AkkamonNexus.RequestStopMoving stopMovingRequest) {
         getContext().getLog().info("Trainer {} stops to move {}.", trainerId, stopMovingRequest.direction);
+        this.movementDirection = Direction.NONE;
         return this;
     }
 
     private Trainer onStartMoving(AkkamonNexus.RequestStartMoving startMovingRequest) {
         getContext().getLog().info("Trainer {} starts to move {}.", trainerId, startMovingRequest.direction);
+        this.movementDirection = startMovingRequest.direction;
         return this;
     }
 
+    private boolean isMoving() {
+        return this.movementDirection != Direction.NONE;
+    }
 }

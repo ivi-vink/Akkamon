@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
 import AkkamonStartScene from './scene';
-import type { Player } from './player';
 import type { Direction } from './Direction';
 
 type PlayerSpriteConfig = {
@@ -8,16 +7,13 @@ type PlayerSpriteConfig = {
     tilePos: Phaser.Math.Vector2,
     texture: Phaser.Textures.Texture | string,
     frame?: string,
-    player: Player,
 }
 
 interface AkkamonPlayerSprite extends Phaser.GameObjects.Sprite {
-    player: Player
 }
 
 export class PlayerSprite extends Phaser.GameObjects.Sprite implements AkkamonPlayerSprite {
 
-    player: Player;
     tilePos: Phaser.Math.Vector2;
 
     constructor(config: PlayerSpriteConfig) {
@@ -30,10 +26,12 @@ export class PlayerSprite extends Phaser.GameObjects.Sprite implements AkkamonPl
               config.texture,
               config.frame);
 
-        this.player = config.player;
         this.tilePos = new Phaser.Math.Vector2(config.tilePos.x, config.tilePos.y);
 
         this.setOrigin(0.5, 1);
+
+        // add to scene!
+        config.scene.add.existing(this);
     }
 
     getPosition(): Phaser.Math.Vector2 {
