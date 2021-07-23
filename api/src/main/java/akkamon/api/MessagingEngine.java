@@ -104,7 +104,7 @@ public class MessagingEngine implements AkkamonMessageEngine {
     void incoming(AkkamonSession session, String message) {
         Event event = gson.fromJson(message, Event.class);
         // TODO use session trainerId
-        String sceneId = "akkamonStartScene";
+        String sceneId = "DemoScene";
 
         switch (event.type) {
             case START_MOVING:

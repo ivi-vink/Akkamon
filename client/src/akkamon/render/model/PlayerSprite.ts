@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
-import AkkamonStartScene from './scene';
-import type { Direction } from './Direction';
+import { AkkamonWorldScene } from '../../scenes/AkkamonWorldScene';
+
+import type { Direction } from '../Direction';
 
 type PlayerSpriteConfig = {
     scene: Phaser.Scene,
@@ -17,12 +18,12 @@ export class PlayerSprite extends Phaser.GameObjects.Sprite implements AkkamonPl
     tilePos: Phaser.Math.Vector2;
 
     constructor(config: PlayerSpriteConfig) {
-        const offsetX = AkkamonStartScene.TILE_SIZE / 2;
-        const offsetY = AkkamonStartScene.TILE_SIZE;
+        const offsetX = AkkamonWorldScene.TILE_SIZE / 2;
+        const offsetY = AkkamonWorldScene.TILE_SIZE;
 
         super(config.scene,
-              config.tilePos.x * AkkamonStartScene.TILE_SIZE + offsetX,
-              config.tilePos.y * AkkamonStartScene.TILE_SIZE + offsetY,
+              config.tilePos.x * AkkamonWorldScene.TILE_SIZE + offsetX,
+              config.tilePos.y * AkkamonWorldScene.TILE_SIZE + offsetY,
               config.texture,
               config.frame);
 

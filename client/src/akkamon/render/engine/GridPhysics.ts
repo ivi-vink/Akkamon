@@ -1,17 +1,20 @@
 import Phaser from 'phaser';
-import type { PlayerSprite } from './sprite';
-import { Direction } from './Direction';
-import AkkamonStartScene from './scene';
-import {
-    akkamonClient
-} from './app';
+
+import { AkkamonWorldScene } from '../../scenes/AkkamonWorldScene';
+
+import { AkkamonEngine } from './AkkamonEngine';
+
+import type { PlayerSprite } from '../model/PlayerSprite';
+
+import { Direction } from '../Direction';
+
 import {
     StartMovingEvent,
     StopMovingEvent,
     NewTilePosEvent
-} from './events';
+} from '../../client/Events';
 
-export class GridPhysics {
+export class GridPhysics extends AkkamonEngine {
 
     static movementDirectionVectors: {
         [key in Direction]?: Phaser.Math.Vector2;
@@ -23,7 +26,7 @@ export class GridPhysics {
     }
 
     private movementDirection: Direction = Direction.NONE;
-    private readonly speedPixelsPerSecond: number = AkkamonStartScene.TILE_SIZE * 4;
+    private readonly speedPixelsPerSecond: number = AkkamonWorldScene.TILE_SIZE * 4;
 
     private tileSizePixelsWalked: number = 0;
 
@@ -32,7 +35,9 @@ export class GridPhysics {
     constructor(
         private playerSprite: PlayerSprite,
         private tileMap: Phaser.Tilemaps.Tilemap
-    ) { }
+    ) {
+        super()
+    }
 
     movePlayerSprite(direction: Direction): void {
         this.lastMovementIntent = direction;
@@ -52,7 +57,7 @@ export class GridPhysics {
 
     private startMoving(direction: Direction): void {
         console.log("Sending startMovingEvent");
-        akkamonClient.send(
+        this.client.send(
             new StartMovingEvent(this.playerSprite.getScene(), direction)
         );
         this.playerSprite.startAnimation(direction);
@@ -76,13 +81,13 @@ export class GridPhysics {
             this.spriteMovement(pixelsToWalkThisUpdate);
             this.updatePlayerSpriteTilePosition();
         } else {
-            this.spriteMovement(AkkamonStartScene.TILE_SIZE - this.tileSizePixelsWalked);
+            this.spriteMovement(AkkamonWorldScene.TILE_SIZE - this.tileSizePixelsWalked);
             this.stopMoving();
         }
     }
 
     private updatePlayerSpriteTilePosition() {
-        akkamonClient.send(
+        this.client.send(
             new NewTilePosEvent(
                 this.playerSprite.getScene(),
                 this.playerSprite.getTilePos()
@@ -106,7 +111,7 @@ export class GridPhysics {
     private spriteMovement(pixelsToMove: number) {
 
         this.tileSizePixelsWalked += pixelsToMove;
-        this.tileSizePixelsWalked %= AkkamonStartScene.TILE_SIZE;
+        this.tileSizePixelsWalked %= AkkamonWorldScene.TILE_SIZE;
 
 
         const directionVec = GridPhysics.movementDirectionVectors[
@@ -125,7 +130,7 @@ export class GridPhysics {
         pixelsToWalkThisUpdate: number
     ): boolean {
         return (
-            this.tileSizePixelsWalked + pixelsToWalkThisUpdate >= AkkamonStartScene.TILE_SIZE
+            this.tileSizePixelsWalked + pixelsToWalkThisUpdate >= AkkamonWorldScene.TILE_SIZE
         );
     }
 
@@ -135,7 +140,7 @@ export class GridPhysics {
     }
 
     private stopMoving(): void {
-        akkamonClient.send(
+        this.client.send(
             new StopMovingEvent(
                 this.playerSprite.getScene(),
                 this.movementDirection

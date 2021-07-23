@@ -1,9 +1,9 @@
 import Phaser from 'phaser';
-import type { Client } from './client'
-import type AkkamonSession from './session'
+import type { Client } from './Client'
+import type AkkamonSession from './Session'
 import {
     PlayerRegistrationEvent
-} from './events';
+} from './Events';
 
 export class Socket extends WebSocket implements AkkamonSession
 {

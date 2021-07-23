@@ -236,7 +236,7 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
         if (sceneTrainerGroup != null) {
             sceneTrainerGroup.tell(trainerOfflineRequest);
         } else {
-            getContext().getLog().info("Ignoring trainerOffline request in scene {}, it isn't mapped to a sceneTrainerActor.");
+            getContext().getLog().info("Ignoring trainerOffline request in scene {}, it isn't mapped to a sceneTrainerActor.", trainerOfflineRequest.sceneId);
         }
         return this;
     }
@@ -273,7 +273,7 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
         if (sceneTrainerGroup != null) {
             sceneTrainerGroup.tell(newTilePosRequest);
         } else {
-            getContext().getLog().info("Ignoring newTilePos request in scene {}, it isn't mapped to a sceneTrainerActor.");
+            getContext().getLog().info("Ignoring newTilePos request in scene {}, it isn't mapped to a sceneTrainerActor.", newTilePosRequest.sceneId);
         }
         return this;
     }
@@ -285,7 +285,7 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
         if (sceneTrainerGroup != null) {
             sceneTrainerGroup.tell(stopMovingRequest);
         } else {
-            getContext().getLog().info("Ignoring stopMove request in scene {}, it isn't mapped to a sceneTrainerActor.");
+            getContext().getLog().info("Ignoring stopMove request in scene {}, it isn't mapped to a sceneTrainerActor.", stopMovingRequest.sceneId);
         }
         return this;
     }
@@ -297,7 +297,7 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
         if (sceneTrainerGroup != null) {
             sceneTrainerGroup.tell(startMovingRequest);
         } else {
-            getContext().getLog().info("Ignoring stopMove request in scene {}, it isn't mapped to a sceneTrainerActor.");
+            getContext().getLog().info("Ignoring startMove request in scene {}, it isn't mapped to a sceneTrainerActor.", startMovingRequest.sceneId);
         }
         return this;
     }

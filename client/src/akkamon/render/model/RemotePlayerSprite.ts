@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
-import AkkamonStartScene from './scene';
-import { PlayerSprite } from './sprite';
-import { GridPhysics } from './GridPhysics';
-import { Direction } from './Direction';
+import { AkkamonWorldScene } from '../../scenes/AkkamonWorldScene';
+import { PlayerSprite } from '../model/PlayerSprite';
+import { GridPhysics } from '../engine/GridPhysics';
+import { Direction } from '../Direction';
 
 export class Queue<T> {
     private _data = new Array();
@@ -51,7 +51,7 @@ export class RemotePlayerSprite extends PlayerSprite  {
 
     private movementDirection: Direction = Direction.NONE;
 
-    private speedPixelsPerSecond: number = AkkamonStartScene.TILE_SIZE * 4;
+    private speedPixelsPerSecond: number = AkkamonWorldScene.TILE_SIZE * 4;
 
     private tileSizePixelsWalked: number = 0;
 
@@ -76,7 +76,7 @@ export class RemotePlayerSprite extends PlayerSprite  {
         } else if (this.shouldContinueMoving()) {
             this.move(pixelsToWalkThisUpdate);
         } else {
-            this.move(AkkamonStartScene.TILE_SIZE - this.tileSizePixelsWalked);
+            this.move(AkkamonWorldScene.TILE_SIZE - this.tileSizePixelsWalked);
             this.stopMoving();
         }
     }
@@ -91,12 +91,12 @@ export class RemotePlayerSprite extends PlayerSprite  {
     }
 
     willCrossTileBorderThisUpdate(pixelsToWalkThisUpdate: number): boolean {
-        return (this.tileSizePixelsWalked + pixelsToWalkThisUpdate) >= AkkamonStartScene.TILE_SIZE;
+        return (this.tileSizePixelsWalked + pixelsToWalkThisUpdate) >= AkkamonWorldScene.TILE_SIZE;
     }
 
     move(pixelsToMove: number): void {
         this.tileSizePixelsWalked += pixelsToMove;
-        this.tileSizePixelsWalked %= AkkamonStartScene.TILE_SIZE;
+        this.tileSizePixelsWalked %= AkkamonWorldScene.TILE_SIZE;
 
         const directionVec = GridPhysics.movementDirectionVectors[this.movementDirection]!.clone();
 

@@ -1,22 +1,38 @@
-import type AkkamonSession from './session';
-import { Socket } from './socket';
-import type { GridPhysics } from './GridPhysics';
-import type { RemotePlayerEngine } from './RemotePlayerEngine';
+import type AkkamonSession from './Session';
+import { Socket } from './Socket';
+
+import { PlayerSprite } from '../render/model/PlayerSprite';
+import { GridPhysics } from '../render/engine/GridPhysics';
+import { GridControls } from '../render/GridControls';
+
+import { RemotePlayerEngine } from '../render/engine/RemotePlayerEngine';
+
+import type { AkkamonClient } from './AkkamonClient';
+
+import type { AkkamonWorldScene } from '../scenes/AkkamonWorldScene';
+
+import { DirectionToAnimation } from '../render/DirectionToAnimation';
+import { Direction } from '../render/Direction';
 
 import {
     EventType,
     HeartBeatReplyEvent,
     IncomingEvent,
     AkkamonEvent,
-} from './events';
+} from './Events';
 
 
-export class Client
+export class Client implements AkkamonClient
 {
 
     private session: AkkamonSession;
+
+    private scene?: AkkamonWorldScene;
     private gridPhysics?: GridPhysics;
+    private gridControls?: GridControls;
+
     private remotePlayerEngine?: RemotePlayerEngine;
+
 
     constructor(
         url: string
@@ -47,8 +63,68 @@ export class Client
         }
     }
 
-    setRemotePlayerEngine(engine: RemotePlayerEngine) {
-        this.remotePlayerEngine = engine;
+    updateScene(delta: number): void {
+        this.gridControls!.update();
+        this.gridPhysics!.update(delta);
+        this.remotePlayerEngine!.update(delta);
+    }
+
+    requestInitPlayerSprite(
+        scene: AkkamonWorldScene
+    ): void {
+
+        this.scene = scene;
+
+        let playerSprite = new PlayerSprite({
+            scene: scene,
+            tilePos: new Phaser.Math.Vector2(scene.spawnPointTilePos!),
+            texture: scene.textures.get("atlas"),
+            frame: "misa-front"
+        });
+
+        this.gridPhysics = new GridPhysics(
+            playerSprite,
+            scene.map!
+        );
+
+        this.gridControls = new GridControls(
+            scene.input,
+            this.gridPhysics
+        );
+
+        this.remotePlayerEngine = new RemotePlayerEngine(
+            scene
+        );
+        this.initAnimation(scene, playerSprite);
+    }
+
+    private initAnimation(
+        scene: AkkamonWorldScene,
+        player: PlayerSprite
+    ): void {
+
+        this.createPlayerAnimation(scene, Direction.LEFT, 0, 3);
+        this.createPlayerAnimation(scene, Direction.RIGHT, 0, 3);
+        this.createPlayerAnimation(scene, Direction.UP, 0, 3);
+        this.createPlayerAnimation(scene, Direction.DOWN, 0, 3);
+
+        // Phaser supports multiple cameras, but you can access the default camera like this:
+        const camera = scene.cameras.main;
+        camera.startFollow(player);
+        camera.roundPixels = true;
+        camera.setBounds(0, 0, scene.map!.widthInPixels, scene.map!.heightInPixels);
+    }
+
+    private createPlayerAnimation(scene: AkkamonWorldScene, direction: Direction, start: number, end: number) {
+        let characterAnimations = DirectionToAnimation.directionToAnimation['misa'];
+
+        scene.anims.create({
+            key: direction, // "misa-left-walk",
+            frames: scene.anims.generateFrameNames("atlas", { prefix: characterAnimations[direction] + ".", start: start, end: end, zeroPad: 3 }),
+            frameRate: 10,
+            repeat: -1
+        });
+
     }
 
 }

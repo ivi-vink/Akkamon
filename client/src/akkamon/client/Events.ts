@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { Direction } from './Direction';
+import type { Direction } from '../render/Direction';
 
 export enum EventType {
     HEART_BEAT = "HeartBeat",

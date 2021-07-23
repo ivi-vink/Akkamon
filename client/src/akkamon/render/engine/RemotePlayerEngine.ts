@@ -1,22 +1,27 @@
 import Phaser from 'phaser';
-import type AkkamonStartScene from './scene';
-import { akkamonClient } from './app';
-import type { Direction } from './Direction';
+
+import type { AkkamonWorldScene } from '../../scenes/AkkamonWorldScene';
+import { AkkamonEngine } from '../engine/AkkamonEngine';
+
+import type { Direction } from '../Direction';
+
 import {
     Queue,
     RemotePlayerSprite
-} from './RemotePlayerSprite';
+} from '../model/RemotePlayerSprite';
+
 import type {
     RemoteMovementQueues
-} from './events';
+} from '../../client/Events';
 
-export class RemotePlayerEngine {
+export class RemotePlayerEngine extends AkkamonEngine {
 
-    private scene: AkkamonStartScene;
+    private scene: AkkamonWorldScene;
 
     private trainerIdToRemotePlayerSprite: Map<string, RemotePlayerSprite> = new Map();
 
-    constructor(scene: AkkamonStartScene) {
+    constructor(scene: AkkamonWorldScene) {
+        super();
         this.scene = scene;
     }
 

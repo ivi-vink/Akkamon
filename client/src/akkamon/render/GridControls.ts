@@ -1,5 +1,5 @@
 import { Direction } from './Direction';
-import type { GridPhysics } from './GridPhysics';
+import type { GridPhysics } from '../render/engine/GridPhysics';
 
 export class GridControls {
     private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
