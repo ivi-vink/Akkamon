@@ -7,6 +7,8 @@ import { Direction } from './Direction';
 
 import { RemotePlayerEngine } from './RemotePlayerEngine';
 
+import { UIControls } from './uiControls';
+
 import { akkamonClient } from './app';
 
 export default class AkkamonStartScene extends Phaser.Scene
@@ -116,7 +118,6 @@ export default class AkkamonStartScene extends Phaser.Scene
         camera.roundPixels = true;
         camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
-        this.scene.launch('AkkamonUI');
     }
 
 
