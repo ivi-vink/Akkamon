@@ -139,7 +139,7 @@ public class MessagingEngine implements AkkamonMessageEngine {
                 );
                 break;
             case TRAINER_REGISTRATION:
-                String trainerId = String.valueOf(sceneIdToAkkamonSessions.get(sceneId) == null ? 0 : sceneIdToAkkamonSessions.get(sceneId).size() + 1);
+                String trainerId = String.valueOf(sceneIdToAkkamonSessions.get(sceneId) == null ? 1 : sceneIdToAkkamonSessions.get(sceneId).size() + 1);
                 system.tell(new AkkamonNexus.RequestTrainerRegistration(
                         trainerId,
                         sceneId,

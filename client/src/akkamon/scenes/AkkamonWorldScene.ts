@@ -55,9 +55,20 @@ export class AkkamonWorldScene extends Phaser.Scene {
 
         let akey = this.input.keyboard.addKey('a');
         akey.on('down', () => {
-            this.activeMenu = new PauseMenu(this);
-            this.isUsingUIControls();
+            if (this.activeMenu === undefined) {
+                this.activeMenu = new PauseMenu(this);
+                this.isUsingUIControls();
+            }
         });
+
+        // this.add.image(
+        //     this.spawnPoint.x!,
+        //     this.spawnPoint.y!,
+        //     'pikachu-back',
+        // )
+        // .setDepth(30)
+        // .setDisplaySize(500,500)
+        // .setOrigin(0.5, 0.5)
 
     }
 
@@ -67,5 +78,9 @@ export class AkkamonWorldScene extends Phaser.Scene {
 
     isUsingGridControls() {
         this.client.setGridControls();
+    }
+
+    getPlayerPixelPosition(): Phaser.Math.Vector2 {
+        return this.client.requestPlayerPixelPosition();
     }
 }

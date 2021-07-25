@@ -51,11 +51,14 @@ class Menu extends Phaser.GameObjects.Image implements AkkamonMenu {
 
     private index?: number;
 
+    private camera?: Phaser.Cameras.Scene2D.Camera;
+
     destroyMe() {
         console.log(this.group);
         console.log("destroying group");
         this.group!.destroy(true);
         this.akkamonScene.isUsingGridControls();
+        this.akkamonScene.activeMenu = undefined;
     }
 
     confirm() {
@@ -64,13 +67,16 @@ class Menu extends Phaser.GameObjects.Image implements AkkamonMenu {
 
     constructor(scene: AkkamonWorldScene) {
         console.log("Making pause Menu");
-        const { width, height } = scene.scale;
-        super(scene, width * 0.95, height * 0.05, "menu")
+
+        let camera = scene.cameras.main;
+
+        super(scene, camera.scrollX + camera.width, camera.scrollY, "menu")
         this.setOrigin(1,0)
         this.setVisible(true)
         this.setDisplaySize(296, 400)
 
         this.akkamonScene = scene;
+        this.camera = camera;
 
         this.group = new Phaser.GameObjects.Group(scene);
 
@@ -101,7 +107,7 @@ class Menu extends Phaser.GameObjects.Image implements AkkamonMenu {
     }
 
     private indexToYpixel(index: number) {
-        return index * 100 + 7;
+        return index * 100 + 46 + this.y;
     }
 
     setButtons(buttonTextArray: Array<string>) {
@@ -116,12 +122,10 @@ class Menu extends Phaser.GameObjects.Image implements AkkamonMenu {
 
     selectButton(direction: Direction) {
         if (direction === Direction.UP && this.index! !== 0) {
-            this.picker!
-            .setPosition(this.picker!.x, this.picker!.y - 100)
+            this.setPicker(this.index! - 1);
             this.index! -= 1;
         } else if (direction === Direction.DOWN && this.index !== this.buttons!.length - 1) {
-            this.picker!
-            .setPosition(this.picker!.x, this.picker!.y + 100)
+            this.setPicker(this.index! + 1);
             this.index! += 1;
         }
     }
@@ -137,5 +141,6 @@ export class PauseMenu extends Menu implements AkkamonMenu {
             'PHONE',
             'CLOSE'
         ]);
+        this.group!.setDepth(20);
     }
 }

@@ -19,7 +19,7 @@ export default {
         file: './dist/app.js',
         name: 'MyGame',
         format: 'iife',
-        sourcemap: true,
+        sourcemap: false,
         intro: 'var global = window;'
     },
 

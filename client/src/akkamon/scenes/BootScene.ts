@@ -27,6 +27,9 @@ export class BootScene extends AkkamonWorldScene {
 
         this.load.image("menu", "assets/images/pMenu.png");
         this.load.image("picker", "assets/images/menupicker.png");
+
+        this.load.pack("pokemon-yellow-front", "assets/pokemon/main-sprites/yellow/pokemon-yellow-front.json")
+        this.load.pack("pokemon-yellow-back", "assets/pokemon/main-sprites/yellow/pokemon-yellow-back.json")
     }
 
     create(): void {

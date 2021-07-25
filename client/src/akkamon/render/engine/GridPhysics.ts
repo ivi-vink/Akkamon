@@ -39,6 +39,15 @@ export class GridPhysics extends AkkamonEngine {
         super()
     }
 
+    getPlayerTilePos() {
+        return this.playerSprite.tilePos;
+    }
+
+    getPlayerPixelPos() {
+        return this.playerSprite.getPosition();
+    }
+
+
     movePlayerSprite(direction: Direction): void {
         this.lastMovementIntent = direction;
 

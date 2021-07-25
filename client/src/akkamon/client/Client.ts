@@ -140,4 +140,8 @@ export class Client implements AkkamonClient
 
     }
 
+    requestPlayerPixelPosition() {
+        return this.gridPhysics!.getPlayerPixelPos();
+    }
+
 }
