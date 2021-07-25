@@ -26,13 +26,12 @@ export class BootScene extends AkkamonWorldScene {
                           "assets/atlas/atlas.json");
 
         this.load.image("menu", "assets/images/pMenu.png");
-        this.load.image("menupicker", "assets/images/menupicker.png");
+        this.load.image("picker", "assets/images/menupicker.png");
     }
 
     create(): void {
         this.scene
             .launch('DemoScene')
-            .launch('AkkamonUI')
             .remove()
     }
 }

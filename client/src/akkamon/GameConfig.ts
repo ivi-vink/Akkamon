@@ -1,7 +1,4 @@
 import {
-    UIScene
-} from './scenes/UIScene';
-import {
     DemoScene
 } from './scenes/DemoScene';
 import {
@@ -15,5 +12,5 @@ export const gameConfig: Phaser.Types.Core.GameConfig & Phaser.Types.Core.Render
     width: 800,
     height: 600,
     pixelArt: true,
-    scene: [BootScene, DemoScene, UIScene]
+    scene: [BootScene, DemoScene]
 };

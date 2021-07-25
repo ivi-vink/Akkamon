@@ -3,7 +3,10 @@ import { Socket } from './Socket';
 
 import { PlayerSprite } from '../render/model/PlayerSprite';
 import { GridPhysics } from '../render/engine/GridPhysics';
+
 import { GridControls } from '../render/GridControls';
+import  { UIControls } from '../render/UIControls';
+
 
 import { RemotePlayerEngine } from '../render/engine/RemotePlayerEngine';
 
@@ -29,7 +32,7 @@ export class Client implements AkkamonClient
 
     private scene?: AkkamonWorldScene;
     private gridPhysics?: GridPhysics;
-    private gridControls?: GridControls;
+    private controls?: GridControls | UIControls;
 
     private remotePlayerEngine?: RemotePlayerEngine;
 
@@ -64,9 +67,19 @@ export class Client implements AkkamonClient
     }
 
     updateScene(delta: number): void {
-        this.gridControls!.update();
+        this.controls!.update();
         this.gridPhysics!.update(delta);
         this.remotePlayerEngine!.update(delta);
+    }
+
+    setUIControls() {
+        this.controls = new UIControls(this.scene!.input, this.scene!.activeMenu!);
+    }
+
+    async setGridControls() {
+        function delay(ms: number) { return new Promise( resolve => setTimeout(resolve, ms) ); }
+        await delay(100);
+        this.controls = new GridControls(this.scene!.input, this.gridPhysics!);
     }
 
     requestInitPlayerSprite(
@@ -87,7 +100,7 @@ export class Client implements AkkamonClient
             scene.map!
         );
 
-        this.gridControls = new GridControls(
+        this.controls = new GridControls(
             scene.input,
             this.gridPhysics
         );
