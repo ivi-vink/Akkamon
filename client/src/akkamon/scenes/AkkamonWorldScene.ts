@@ -4,8 +4,9 @@ import { client } from '../../app';
 
 import { PauseMenu, AkkamonMenu } from '../scenes/UIElement';
 
-export let eventsCenter = new Phaser.Events.EventEmitter();
+import { Stack } from '../DataWrappers';
 
+export let eventsCenter = new Phaser.Events.EventEmitter();
 
 export class AkkamonWorldScene extends Phaser.Scene {
     static readonly TILE_SIZE = 32;
@@ -23,9 +24,7 @@ export class AkkamonWorldScene extends Phaser.Scene {
 
     spawnPoint: Phaser.Types.Tilemaps.TiledObject | undefined;
 
-    pauseMenu?: PauseMenu;
-
-    activeMenu?: AkkamonMenu;
+    menus: Stack<AkkamonMenu> = new Stack();
 
     create(mapKey: string, tileSetKey: string) {
         this.map = this.make.tilemap({ key: mapKey });
@@ -55,9 +54,13 @@ export class AkkamonWorldScene extends Phaser.Scene {
 
         let akey = this.input.keyboard.addKey('a');
         akey.on('down', () => {
-            if (this.activeMenu === undefined) {
-                this.activeMenu = new PauseMenu(this);
-                this.isUsingUIControls();
+            if (this.menus.isEmpty()) {
+                this.menus.push(new PauseMenu(this));
+                console.log("here is the menu stack:");
+                console.log(this.menus);
+                this.menuTakesUIControl(this.input, this.menus.peek());
+                console.log("here is the menu stack, after taking controls:");
+                console.log(this.menus);
             }
         });
 
@@ -72,15 +75,44 @@ export class AkkamonWorldScene extends Phaser.Scene {
 
     }
 
-    isUsingUIControls() {
-        this.client.setUIControls();
+    menuTakesUIControl(input: Phaser.Input.InputPlugin, menu: AkkamonMenu) {
+        this.client.setUIControls(input, menu);
     }
 
     isUsingGridControls() {
         this.client.setGridControls();
     }
 
+    pushMenu(menu: AkkamonMenu) {
+        this.menus.push(menu);
+        this.menuTakesUIControl(this.input, menu);
+    }
+
+    popMenu() {
+        return this.menus.pop();
+    }
+
+    traverseMenusBackwards() {
+        console.log("menu stack before traversing back:");
+        console.log(this.menus);
+        this.popMenu();
+        if (!this.menus.isEmpty()) {
+            this.menuTakesUIControl(this.input, this.menus.peek());
+        } else {
+            this.isUsingGridControls();
+        }
+    }
+
     getPlayerPixelPosition(): Phaser.Math.Vector2 {
         return this.client.requestPlayerPixelPosition();
+    }
+
+    getRemotePlayerNames(): Array<string> {
+        let remotePlayerData = this.client.requestRemotePlayerData();
+        if (remotePlayerData.size === 0) {
+            return ['Nobody Online'];
+        } else {
+            return Array.from(remotePlayerData.keys());
+        }
     }
 }

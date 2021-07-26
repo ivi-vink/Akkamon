@@ -4,37 +4,7 @@ import { PlayerSprite } from '../model/PlayerSprite';
 import { GridPhysics } from '../engine/GridPhysics';
 import { Direction } from '../Direction';
 
-export class Queue<T> {
-    private _data = new Array();
-
-    constructor(data?: Array<T>) {
-        if (data !== undefined) {
-            this._data = data;
-        }
-    }
-
-    push(element: T): void {
-        this._data.push(element);
-    }
-
-    pushArray(arr: T[]): void {
-        for (var element of arr) {
-            this._data.push(element);
-        }
-    }
-
-    pop(): T | undefined {
-        return this._data.shift();
-    }
-
-    isEmpty(): boolean {
-        return this._data.length == 0;
-    }
-
-    peek() {
-        return this._data[0];
-    }
-}
+import { Queue } from '../../DataWrappers';
 
 type RemotePlayerSpriteConfig = {
     scene: Phaser.Scene,

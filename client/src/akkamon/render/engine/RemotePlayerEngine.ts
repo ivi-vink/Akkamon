@@ -6,9 +6,12 @@ import { AkkamonEngine } from '../engine/AkkamonEngine';
 import type { Direction } from '../Direction';
 
 import {
-    Queue,
     RemotePlayerSprite
 } from '../model/RemotePlayerSprite';
+
+import {
+    Queue
+} from '../../DataWrappers';
 
 import type {
     RemoteMovementQueues
@@ -85,5 +88,9 @@ export class RemotePlayerEngine extends AkkamonEngine {
                 // console.log("Player " + key + " was not removed!");
             }
         });
+    }
+
+    getData() {
+        return this.trainerIdToRemotePlayerSprite;
     }
 }

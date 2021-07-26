@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="1849.4536"
+   height="100.19415"
+   viewBox="0 0 489.3346 26.509699"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1 (c4e8f9ed74, 2021-05-24)"
+   sodipodi:docname="hpbbbbb.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="true"
+     inkscape:document-units="mm"
+     showgrid="true"
+     width="200px"
+     borderlayer="true"
+     inkscape:showpageshadow="false"
+     inkscape:snap-global="false"
+     inkscape:snap-bbox="true"
+     inkscape:bbox-paths="false"
+     inkscape:bbox-nodes="true"
+     inkscape:snap-others="false"
+     units="px"
+     inkscape:zoom="0.5"
+     inkscape:cx="1251"
+     inkscape:cy="377"
+     inkscape:window-width="2560"
+     inkscape:window-height="1440"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0">
+    <inkscape:grid
+       type="xygrid"
+       id="grid21"
+       spacingx="6.6145834"
+       spacingy="6.6145834"
+       empspacing="1"
+       dotted="true"
+       originx="2988.8318"
+       originy="974.81433" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2">
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath1350">
+      <rect
+         style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.140441;stroke-dasharray:0.140441, 0.702204;stroke-opacity:1;marker-start:none;marker-end:none"
+         id="rect1352"
+         width="72.760414"
+         height="72.760414"
+         x="13.229166"
+         y="-79.375" />
+    </clipPath>
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(2988.8318,974.81445)">
+    <rect
+       style="fill:#3dc73d;fill-opacity:1;stroke:none;stroke-width:0.958606;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect13924"
+       width="489.33459"
+       height="26.509701"
+       x="-2988.8318"
+       y="-974.81445" />
+  </g>
+</svg>

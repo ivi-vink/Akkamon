@@ -30,6 +30,9 @@ export class BootScene extends AkkamonWorldScene {
 
         this.load.pack("pokemon-yellow-front", "assets/pokemon/main-sprites/yellow/pokemon-yellow-front.json")
         this.load.pack("pokemon-yellow-back", "assets/pokemon/main-sprites/yellow/pokemon-yellow-back.json")
+
+        this.load.pack("general-interface", "assets/images/general-ui.json")
+        this.load.pack("battle-interface", "assets/images/battle-ui.json")
     }
 
     create(): void {

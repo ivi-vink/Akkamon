@@ -72,13 +72,14 @@ export class Client implements AkkamonClient
         this.remotePlayerEngine!.update(delta);
     }
 
-    setUIControls() {
-        this.controls = new UIControls(this.scene!.input, this.scene!.activeMenu!);
+    setUIControls(input: Phaser.Input.InputPlugin, menu: any) {
+        this.controls = new UIControls(input, menu);
     }
 
     async setGridControls() {
         function delay(ms: number) { return new Promise( resolve => setTimeout(resolve, ms) ); }
         await delay(100);
+        console.log('setting grid control');
         this.controls = new GridControls(this.scene!.input, this.gridPhysics!);
     }
 
@@ -144,4 +145,10 @@ export class Client implements AkkamonClient
         return this.gridPhysics!.getPlayerPixelPos();
     }
 
+    requestInitBattle() {
+    }
+
+    requestRemotePlayerData() {
+        return this.remotePlayerEngine!.getData();
+    }
 }

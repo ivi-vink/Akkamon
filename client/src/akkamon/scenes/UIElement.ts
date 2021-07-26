@@ -3,7 +3,7 @@ import { Direction } from '../render/Direction';
 
 
 class MenuText extends Phaser.GameObjects.Text {
-    constructor(scene: Phaser.Scene, group: Phaser.GameObjects.Group, x: number, y: number, text: string) {
+    constructor(scene: Phaser.Scene, group: Phaser.GameObjects.Group, groupDepth: number, x: number, y: number, text: string) {
         let style: Phaser.Types.GameObjects.Text.TextStyle = {
                 fontFamily: 'Courier',
                 fontSize: '16px',
@@ -15,9 +15,9 @@ class MenuText extends Phaser.GameObjects.Text {
                 align: 'left',  // 'left'|'center'|'right'|'justify'
         }
         super(scene, x, y, text, style);
-        console.log("adding text to scene");
         scene.add.existing(this);
         group.add(this);
+        this.setDepth(groupDepth);
     }
 }
 
@@ -41,36 +41,38 @@ export interface AkkamonMenu {
 
 class Menu extends Phaser.GameObjects.Image implements AkkamonMenu {
 
-    private akkamonScene: AkkamonWorldScene
+    akkamonScene: AkkamonWorldScene
 
     public group?: Phaser.GameObjects.Group;
 
-    private buttons?: Array<MenuText>;
+    groupDepth?: number
+
+    buttons?: Array<MenuText>;
 
     private picker?: Picker;
 
-    private index?: number;
+    index?: number;
 
     private camera?: Phaser.Cameras.Scene2D.Camera;
 
+    ySpacing?: number
+    yOffsetFromTop?: number
+    xOffsetFromRight?: number
+
     destroyMe() {
-        console.log(this.group);
-        console.log("destroying group");
+        this.akkamonScene.traverseMenusBackwards();
         this.group!.destroy(true);
-        this.akkamonScene.isUsingGridControls();
-        this.akkamonScene.activeMenu = undefined;
     }
 
     confirm() {
         // communicate with client
+        throw new Error('Confirm method should be present in a Menu implementation');
     }
 
     constructor(scene: AkkamonWorldScene) {
-        console.log("Making pause Menu");
-
         let camera = scene.cameras.main;
 
-        super(scene, camera.scrollX + camera.width, camera.scrollY, "menu")
+        super(scene, camera.scrollX + camera.width, camera.scrollY, "pause-menu")
         this.setOrigin(1,0)
         this.setVisible(true)
         this.setDisplaySize(296, 400)
@@ -80,13 +82,18 @@ class Menu extends Phaser.GameObjects.Image implements AkkamonMenu {
 
         this.group = new Phaser.GameObjects.Group(scene);
 
-        console.log("Adding this to scene");
         scene.add.existing(this);
         this.group.add(this);
 
         this.buttons = new Array();
 
         this.index = 0;
+
+        this.ySpacing = 100;
+        this.yOffsetFromTop = 40;
+        this.xOffsetFromRight = 150;
+
+        this.groupDepth = 20;
     }
 
     setPicker(index: number) {
@@ -98,7 +105,7 @@ class Menu extends Phaser.GameObjects.Image implements AkkamonMenu {
                 this.group!,
                 pickerX,
                 pickerY,
-                "picker")
+                "menupicker")
         } else {
             this.picker.setY(
                 pickerY
@@ -107,16 +114,19 @@ class Menu extends Phaser.GameObjects.Image implements AkkamonMenu {
     }
 
     private indexToYpixel(index: number) {
-        return index * 100 + 46 + this.y;
+        return index * this.ySpacing! + this.yOffsetFromTop! + 7 + this.y;
     }
 
     setButtons(buttonTextArray: Array<string>) {
         for (let i = 0; i < buttonTextArray.length; i++) {
-            this.buttons!.push(new MenuText(this.scene, this.group!, this.x - 150, this.y + 40 + i * 100, buttonTextArray[i]));
+            this.buttons!.push(new MenuText(this.scene, this.group!, this.groupDepth!, this.x - this.xOffsetFromRight!, this.y + this.yOffsetFromTop! + i * this.ySpacing!, buttonTextArray[i]));
         }
     }
 
     clearButtons() {
+        for (let button of this.buttons!) {
+            button.destroy();
+        }
         this.buttons = new Array();
     }
 
@@ -134,6 +144,7 @@ class Menu extends Phaser.GameObjects.Image implements AkkamonMenu {
 export class PauseMenu extends Menu implements AkkamonMenu {
     constructor(scene: AkkamonWorldScene) {
         super(scene)
+        this.ySpacing
         this.setPicker(0);
         this.setButtons([
             'POKéDEX',
@@ -141,6 +152,84 @@ export class PauseMenu extends Menu implements AkkamonMenu {
             'PHONE',
             'CLOSE'
         ]);
-        this.group!.setDepth(20);
+        this.group!.setDepth(this.groupDepth!);
     }
+
+    confirm() {
+        if (this.buttons![this.index!].text === 'PHONE') {
+            this.akkamonScene.pushMenu(new RemotePlayerList(this.akkamonScene, this.akkamonScene.getRemotePlayerNames()));
+        }
+    }
+}
+
+class ListMenu extends Menu implements AkkamonMenu {
+    options: Array<string>
+
+    viewTop: number = 0;
+
+    viewBot: number = 4;
+
+    constructor(
+        scene: AkkamonWorldScene,
+        options: Array<string>
+    ) {
+        super(scene)
+        this.options = options;
+
+        this.xOffsetFromRight = 210;
+        this.yOffsetFromTop = 50;
+
+        let contacts = new MenuText(this.scene, this.group!, this.groupDepth!, this.x - this.xOffsetFromRight, this.y + 20, "Nearby trainers:")
+        // this.yOffsetFromTop
+        // this.ySpacing
+
+        this.setPicker(0);
+        this.setButtons(
+            this.options.slice(
+                this.viewTop,
+                this.viewBot
+            )
+        );
+
+        this.groupDepth = 30;
+        this.group!.setDepth(this.groupDepth);
+    }
+
+    selectButton(direction: Direction) {
+        if (direction === Direction.UP) {
+            if (this.index! !== 0) {
+                this.setPicker(this.index! - 1);
+                this.index! -= 1;
+            } else if (this.viewTop !== 0) {
+                console.log("traversing the list upwards!");
+                this.viewTop -= 1;
+                this.viewBot -= 1;
+                this.clearButtons();
+                this.setButtons(
+                    this.options.slice(
+                        this.viewTop,
+                        this.viewBot
+                    ));
+            }
+        } else if (direction === Direction.DOWN) {
+            if (this.index! !== this.buttons!.length - 1) {
+                this.setPicker(this.index! + 1);
+                this.index! += 1;
+            } else if (this.viewBot !== this.options.length) {
+                console.log("traversing the list downwards!");
+                this.viewTop += 1;
+                this.viewBot += 1;
+                this.clearButtons();
+                this.setButtons(
+                    this.options.slice(
+                        this.viewTop,
+                        this.viewBot
+                    ));
+            }
+        }
+    }
+
+}
+
+class RemotePlayerList extends ListMenu implements AkkamonMenu {
 }
