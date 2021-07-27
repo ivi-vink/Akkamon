@@ -24,7 +24,8 @@ import {
     HeartBeatReplyEvent,
     IncomingEvent,
     AkkamonEvent,
-    BattleRequestEvent,
+    InteractionRequestEvent,
+    Interaction
 } from './Events';
 
 function delay(ms: number) {
@@ -80,8 +81,8 @@ export class Client implements AkkamonClient
                     this.session.trainerId = event.trainerId;
                 }
                 break;
-            case EventType.INIT_BATTLE_REPLY:
-                console.log("Received battle request reply!");
+            case EventType.INTERACTION_REPLY:
+                console.log("Received an interaction reply!");
                 console.log(event);
                 break;
             default:
@@ -190,13 +191,14 @@ export class Client implements AkkamonClient
         return this.remotePlayerEngine!.getData();
     }
 
-    sendBattleChallenge(remotePlayerName: string) {
+    sendInteractionRequest(interaction: Interaction) {
         console.log("sent a battle request!");
+        console.log(this.getCurrentSceneKey());
+        console.log(JSON.stringify(interaction));
         this.interactionEngine!.setAwaitingResponse();
-        this.send(new BattleRequestEvent(
+        this.send(new InteractionRequestEvent(
             this.getCurrentSceneKey(),
-            this.getSessionTrainerId(),
-            remotePlayerName
+            interaction
         ));
     }
 

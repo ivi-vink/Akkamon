@@ -113,8 +113,12 @@ export class AkkamonWorldScene extends Phaser.Scene {
         }
     }
 
-    requestBattleChallenge(remotePlayerName: string): void {
-        this.client.sendBattleChallenge(remotePlayerName);
+    requestBattle(remotePlayerName: string | string[]): void {
+        this.client.sendInteractionRequest({
+            type: "battle",
+            requestingTrainerId: this.client.getSessionTrainerId()!,
+            receivingTrainerIds: Array.isArray(remotePlayerName) ? remotePlayerName : [remotePlayerName]
+        });
     }
 
     clearMenus() {

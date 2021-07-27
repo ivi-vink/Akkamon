@@ -9,4 +9,5 @@ public class Event {
     public Direction direction;
     public String sceneId;
     public TilePos tilePos;
+    public Interaction interaction;
 }

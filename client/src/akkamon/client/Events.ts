@@ -1,6 +1,19 @@
 import Phaser from 'phaser';
 import type { Direction } from '../render/Direction';
 
+export type TrainerPosition = { x: number, y: number }
+
+export type RemoteMovementQueues = {
+    [trainerId: string]: { value: Array<Direction> }
+}
+
+export type Interaction = {
+    type: string,
+    requestingTrainerId: string,
+    receivingTrainerIds: string[]
+}
+
+
 export enum EventType {
     HEART_BEAT = "HeartBeat",
     TRAINER_REGISTRATION_REQUEST = "TrainerRegistrationRequestEvent",
@@ -8,27 +21,25 @@ export enum EventType {
     START_MOVING =  "StartMoving",
     STOP_MOVING = "StopMoving",
     NEW_TILE_POS = "NewTilePos",
-    INIT_BATTLE_REQUEST = "InitBattleRequestEvent",
-    INIT_BATTLE_REPLY = "InitBattleReplyEvent",
-    BATTLE_ABORTED = "BattleAborted"
+    INTERACTION_REQUEST = "InteractionRequestEvent",
+    INTERACTION_REPLY = "InteractionReplyEvent",
+    INTERACTION_ABORTED = "InteractionAbortedEvent"
 }
 
 export interface AkkamonEvent {
     type: EventType
 }
 
-export type TrainerPosition = { x: number, y: number }
-
-export type RemoteMovementQueues = {
-    [trainerId: string]: { value: Array<Direction> }
+export interface InteractionEvent extends AkkamonEvent {
+    interaction: Interaction
 }
 
-// INCOMING EVENTS
 export interface IncomingEvent extends AkkamonEvent {
     remoteMovementQueues?: RemoteMovementQueues
     trainerId?: string
 }
 
+// INCOMING EVENTS
 export class HeartBeatReplyEvent implements IncomingEvent {
 
     public type: EventType = EventType.HEART_BEAT;
@@ -46,13 +57,13 @@ export class PlayerRegistrationReplyEvent implements IncomingEvent {
     ) { }
 }
 
-export class InitBattleReplyEvent implements IncomingEvent {
-
-    public type: EventType = EventType.INIT_BATTLE_REPLY;
-
-    constructor(
-    ) { }
-}
+// export class InitBattleReplyEvent implements IncomingEvent {
+//
+//     public type: EventType = EventType.INIT_BATTLE_REPLY;
+//
+//     constructor(
+//     ) { }
+// }
 
 // OUTGOING EVENTS
 export class PlayerRegistrationRequestEvent implements AkkamonEvent {
@@ -95,12 +106,13 @@ export class NewTilePosEvent implements AkkamonEvent {
 }
 
 
-export class InitBattleRequestEvent implements AkkamonEvent {
 
-    public type: EventType = EventType.INIT_BATTLE_REQUEST;
+export class InteractionRequestEvent implements InteractionEvent {
+
+    public type: EventType = EventType.INTERACTION_REQUEST;
 
     constructor(
-        public thisTrainer: string,
-        public otherTrainer: string
+        public sceneId: string,
+        public interaction: Interaction,
     ) { }
 }

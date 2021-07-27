@@ -7,15 +7,33 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Queue;
+import java.time.Duration;
+import java.util.*;
 
 public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
 
 
     public interface Command {}
+
+    public static class RequestInteraction
+            implements Command {
+
+        public long requestId;
+        public String type;
+        public String sceneId;
+        public String trainerId;
+        public List<String> forwardTo;
+        public ActorRef<Command> replyTo;
+
+        public RequestInteraction(long requestId, String type, String sceneId, String trainerId, List<String> forwardTo, ActorRef<Command> replyTo) {
+            this.requestId = requestId;
+            this.type = type;
+            this.sceneId = sceneId;
+            this.trainerId = trainerId;
+            this.forwardTo = forwardTo;
+            this.replyTo = replyTo;
+        }
+    }
 
     public static class RequestTrainerRegistration
             implements AkkamonNexus.Command, SceneTrainerGroup.Command {
@@ -220,7 +238,24 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
                 .onMessage(RequestStartMoving.class, this::onStartMoving)
                 .onMessage(RequestStopMoving.class, this::onStopMoving)
                 .onMessage(RequestNewTilePos.class, this::onNewTilePos)
+                .onMessage(RequestInteraction.class, this::onInteractionRequest)
                 .build();
+    }
+
+    private AkkamonNexus onInteractionRequest(RequestInteraction interactionRequest) {
+        List<String> needConfirmation = interactionRequest.forwardTo;
+        messageEngine.broadCastMessageToSessionsWithTrainerIds(needConfirmation, interactionRequest.type, interactionRequest.trainerId, interactionRequest.requestId);
+
+        ActorRef<InteractionHandshaker.Command> getContext().spawn(
+                        InteractionHandshaker.create(
+                                interactionRequest.trainerId,
+                                interactionRequest.forwardTo,
+                                interactionRequest.requestId,
+                                interactionRequest.replyTo,
+                                Duration.ofSeconds(20)
+                        )
+                );
+        return this;
     }
 
     private AkkamonNexus onTrainerOffline(RespondTrainerOffline trainerOfflineMsg) {
@@ -306,7 +341,7 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
         // TODO test when registration fails?
         getContext().getLog().info("Adding {} to scene {} Live AkkamonSessions in Messaging Engine", reply.trainerId, reply.sceneId);
         reply.session.setTrainerId(reply.trainerId);
-        messageEngine.registerTrainerSessionToScene(reply.sceneId, reply.session);
+        messageEngine.registerTrainerSessionToSceneAndTrainerIdMaps(reply.sceneId, reply.session);
         return this;
     }
 

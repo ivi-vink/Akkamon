@@ -413,7 +413,7 @@ class ChallengeDialogue extends ConfirmationDialogue implements AkkamonMenu {
 
     confirm() {
         if (this.buttons![this.index!].text === "YES") {
-            this.akkamonScene.requestBattleChallenge(this.challengedTrainerName);
+            this.akkamonScene.requestBattle(this.challengedTrainerName);
             this.akkamonScene.clearMenus();
             this.akkamonScene.pushMenu(new WaitingDialogue(this.akkamonScene, new Phaser.GameObjects.Group(this.scene), 20));
         } else {

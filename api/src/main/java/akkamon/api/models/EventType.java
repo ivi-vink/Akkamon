@@ -24,4 +24,7 @@ public enum EventType {
     @SerializedName("SocketClosed")
     SOCKET_CLOSED,
 
+    @SerializedName("InteractionRequestEvent")
+    INTERACTION_REQUEST
+
 }
