@@ -86,8 +86,7 @@ public class HeartBeatQuery extends AbstractBehavior<HeartBeatQuery.Command> {
                     new Trainer.ReadMovementQueue(
                             0L,
                             respondTrainerPositionAdapter
-                    )
-                    );
+                    ));
         }
         stillWaiting = new HashSet<>(trainerIdToActor.keySet());
     }

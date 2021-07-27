@@ -10,6 +10,8 @@ import  { UIControls } from '../render/UIControls';
 
 import { RemotePlayerEngine } from '../render/engine/RemotePlayerEngine';
 
+import { InteractionEngine } from './InteractionEngine';
+
 import type { AkkamonClient } from './AkkamonClient';
 
 import type { AkkamonWorldScene } from '../scenes/AkkamonWorldScene';
@@ -22,7 +24,14 @@ import {
     HeartBeatReplyEvent,
     IncomingEvent,
     AkkamonEvent,
+    BattleRequestEvent,
 } from './Events';
+
+function delay(ms: number) {
+    return new Promise(resolve => {
+        setTimeout(resolve, ms);
+    });
+}
 
 
 export class Client implements AkkamonClient
@@ -36,21 +45,44 @@ export class Client implements AkkamonClient
 
     private remotePlayerEngine?: RemotePlayerEngine;
 
+    private interactionEngine?: InteractionEngine
 
     constructor(
-        url: string
+        private url: string
     ) {
+
         this.session = new Socket(url, this);
+
+    }
+
+    retryConnection() {
+        this.tryAgainLater(1000);
+        this.session = new Socket(this.url, this);
+    }
+
+    async tryAgainLater(ms: number) {
+        await delay(ms);
     }
 
     in(eventString: string) {
         let event: IncomingEvent = JSON.parse(eventString);
+        // console.log(event);
         switch (event.type) {
             case EventType.HEART_BEAT:
                 if (this.remotePlayerEngine !== undefined) {
                     this.remotePlayerEngine.push(event.remoteMovementQueues!);
                 }
                 this.send(new HeartBeatReplyEvent());
+                break;
+            case EventType.TRAINER_REGISTRATION_REPLY:
+                if (event.trainerId !== undefined) {
+                    console.log("setting Session trainerId to: " + event.trainerId);
+                    this.session.trainerId = event.trainerId;
+                }
+                break;
+            case EventType.INIT_BATTLE_REPLY:
+                console.log("Received battle request reply!");
+                console.log(event);
                 break;
             default:
                 console.log("ignored incoming event, doesn't match EventType interface.");
@@ -70,6 +102,7 @@ export class Client implements AkkamonClient
         this.controls!.update();
         this.gridPhysics!.update(delta);
         this.remotePlayerEngine!.update(delta);
+        this.interactionEngine!.update();
     }
 
     setUIControls(input: Phaser.Input.InputPlugin, menu: any) {
@@ -109,6 +142,11 @@ export class Client implements AkkamonClient
         this.remotePlayerEngine = new RemotePlayerEngine(
             scene
         );
+
+        this.interactionEngine = new InteractionEngine(
+            scene
+        );
+
         this.initAnimation(scene, playerSprite);
     }
 
@@ -150,5 +188,23 @@ export class Client implements AkkamonClient
 
     requestRemotePlayerData() {
         return this.remotePlayerEngine!.getData();
+    }
+
+    sendBattleChallenge(remotePlayerName: string) {
+        console.log("sent a battle request!");
+        this.interactionEngine!.setAwaitingResponse();
+        this.send(new BattleRequestEvent(
+            this.getCurrentSceneKey(),
+            this.getSessionTrainerId(),
+            remotePlayerName
+        ));
+    }
+
+    getSessionTrainerId() {
+        return this.session.trainerId;
+    }
+
+    getCurrentSceneKey() {
+        return this.scene!.scene.key;
     }
 }

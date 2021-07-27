@@ -55,12 +55,7 @@ export class AkkamonWorldScene extends Phaser.Scene {
         let akey = this.input.keyboard.addKey('a');
         akey.on('down', () => {
             if (this.menus.isEmpty()) {
-                this.menus.push(new PauseMenu(this));
-                console.log("here is the menu stack:");
-                console.log(this.menus);
-                this.menuTakesUIControl(this.input, this.menus.peek());
-                console.log("here is the menu stack, after taking controls:");
-                console.log(this.menus);
+                this.pushMenu(new PauseMenu(this));
             }
         });
 
@@ -86,6 +81,8 @@ export class AkkamonWorldScene extends Phaser.Scene {
     pushMenu(menu: AkkamonMenu) {
         this.menus.push(menu);
         this.menuTakesUIControl(this.input, menu);
+        console.log("New menu stack:");
+        console.log(this.menus);
     }
 
     popMenu() {
@@ -93,14 +90,14 @@ export class AkkamonWorldScene extends Phaser.Scene {
     }
 
     traverseMenusBackwards() {
-        console.log("menu stack before traversing back:");
-        console.log(this.menus);
         this.popMenu();
         if (!this.menus.isEmpty()) {
             this.menuTakesUIControl(this.input, this.menus.peek());
         } else {
             this.isUsingGridControls();
         }
+        console.log("menu stack after traversing back:");
+        console.log(this.menus);
     }
 
     getPlayerPixelPosition(): Phaser.Math.Vector2 {
@@ -114,5 +111,22 @@ export class AkkamonWorldScene extends Phaser.Scene {
         } else {
             return Array.from(remotePlayerData.keys());
         }
+    }
+
+    requestBattleChallenge(remotePlayerName: string): void {
+        this.client.sendBattleChallenge(remotePlayerName);
+    }
+
+    clearMenus() {
+        if (this.menus.length > 0) {
+            this.menus.pop()!.destroyGroup();
+            console.log("stack while clearing menus:");
+            console.log(this.menus.cloneData());
+            this.clearMenus();
+        }
+    }
+
+    setWaitingOnResponse() {
+
     }
 }

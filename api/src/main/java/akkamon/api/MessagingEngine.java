@@ -4,6 +4,7 @@ import akka.actor.typed.ActorRef;
 import akka.actor.typed.ActorSystem;
 import akkamon.api.models.Event;
 import akkamon.api.models.HeartBeatEvent;
+import akkamon.api.models.TrainerRegistrationReplyEvent;
 import akkamon.domain.AkkamonMessageEngine;
 import akkamon.domain.AkkamonNexus;
 import akkamon.domain.AkkamonSession;
@@ -77,7 +78,12 @@ public class MessagingEngine implements AkkamonMessageEngine {
             );
             System.out.println(sceneIdToAkkamonSessions.keySet());
         }
-        //heartBeat();
+
+        System.out.println("Sending trainerId: " + session.getTrainerId());
+        // TODO what if registration goes wrong ...
+        session.send(
+                gson.toJson(new TrainerRegistrationReplyEvent(session.getTrainerId()))
+        );
     }
 
     @Override
@@ -138,7 +144,7 @@ public class MessagingEngine implements AkkamonMessageEngine {
                         )
                 );
                 break;
-            case TRAINER_REGISTRATION:
+            case TRAINER_REGISTRATION_REQUEST:
                 String trainerId = String.valueOf(sceneIdToAkkamonSessions.get(sceneId) == null ? 1 : sceneIdToAkkamonSessions.get(sceneId).size() + 1);
                 system.tell(new AkkamonNexus.RequestTrainerRegistration(
                         trainerId,

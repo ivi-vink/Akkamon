@@ -3,8 +3,11 @@ package akkamon.api.models;
 import com.google.gson.annotations.SerializedName;
 
 public enum EventType {
-    @SerializedName("PlayerRegistrationEvent")
-    TRAINER_REGISTRATION,
+    @SerializedName("TrainerRegistrationRequestEvent")
+    TRAINER_REGISTRATION_REQUEST,
+
+    @SerializedName("TrainerRegistrationReplyEvent")
+    TRAINER_REGISTRATION_REPLY,
 
     @SerializedName("HeartBeat")
     HEART_BEAT,

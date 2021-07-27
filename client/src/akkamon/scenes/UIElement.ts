@@ -1,12 +1,17 @@
 import type { AkkamonWorldScene } from '../scenes/AkkamonWorldScene';
 import { Direction } from '../render/Direction';
+import {
+    Queue
+} from '../DataWrappers';
 
 
 class MenuText extends Phaser.GameObjects.Text {
+    public static TEXT_HEIGHT: number = 16;
+
     constructor(scene: Phaser.Scene, group: Phaser.GameObjects.Group, groupDepth: number, x: number, y: number, text: string) {
         let style: Phaser.Types.GameObjects.Text.TextStyle = {
                 fontFamily: 'Courier',
-                fontSize: '16px',
+                fontSize: `${MenuText.TEXT_HEIGHT}px`,
                 fontStyle: '',
                 backgroundColor: undefined,
                 color: '#000000',
@@ -18,6 +23,30 @@ class MenuText extends Phaser.GameObjects.Text {
         scene.add.existing(this);
         group.add(this);
         this.setDepth(groupDepth);
+    }
+}
+
+class WrappedMenuText extends MenuText {
+    constructor(scene: Phaser.Scene, group: Phaser.GameObjects.Group, groupDepth: number, x: number, y: number, text: string, wrapWidth: number) {
+        super(scene, group, groupDepth, x, y, text);
+        this.setStyle({
+                fontFamily: 'Courier',
+                fontSize: '16px',
+                fontStyle: '',
+                backgroundColor: undefined,
+                color: '#000000',
+                stroke: '#000000',
+                strokeThickness: 0,
+                align: 'left',  // 'left'|'center'|'right'|'justify'
+                wordWrap: {
+                    width: wrapWidth,
+                    useAdvancedWrap: true
+                }
+        });
+    }
+
+    destroy() {
+        super.destroy();
     }
 }
 
@@ -34,8 +63,9 @@ class Picker extends Phaser.GameObjects.Image {
 
 export interface AkkamonMenu {
     selectButton: (direction: Direction) => void
-    destroyMe: () => void
+    destroyAndGoBack: () => void
     confirm: () => void
+    destroyGroup: () => void
 }
 
 
@@ -58,10 +88,15 @@ class Menu extends Phaser.GameObjects.Image implements AkkamonMenu {
     ySpacing?: number
     yOffsetFromTop?: number
     xOffsetFromRight?: number
+    pickerOffset?:number
 
-    destroyMe() {
-        this.akkamonScene.traverseMenusBackwards();
+    destroyGroup() {
         this.group!.destroy(true);
+    }
+
+    destroyAndGoBack() {
+        this.akkamonScene.traverseMenusBackwards();
+        this.destroyGroup();
     }
 
     confirm() {
@@ -69,10 +104,10 @@ class Menu extends Phaser.GameObjects.Image implements AkkamonMenu {
         throw new Error('Confirm method should be present in a Menu implementation');
     }
 
-    constructor(scene: AkkamonWorldScene) {
+    constructor(scene: AkkamonWorldScene, imageKey: string) {
         let camera = scene.cameras.main;
 
-        super(scene, camera.scrollX + camera.width, camera.scrollY, "pause-menu")
+        super(scene, camera.scrollX, camera.scrollY, imageKey)
         this.setOrigin(1,0)
         this.setVisible(true)
         this.setDisplaySize(296, 400)
@@ -143,8 +178,9 @@ class Menu extends Phaser.GameObjects.Image implements AkkamonMenu {
 
 export class PauseMenu extends Menu implements AkkamonMenu {
     constructor(scene: AkkamonWorldScene) {
-        super(scene)
-        this.ySpacing
+        super(scene, "pause-menu")
+        let camera = scene.cameras.main;
+        this.setPosition(this.x + camera.width, this.y);
         this.setPicker(0);
         this.setButtons([
             'POKéDEX',
@@ -173,13 +209,25 @@ class ListMenu extends Menu implements AkkamonMenu {
         scene: AkkamonWorldScene,
         options: Array<string>
     ) {
-        super(scene)
+        super(scene, "pause-menu")
+        let camera = scene.cameras.main;
+        this.setPosition(this.x + camera.width, this.y);
         this.options = options;
+
+        if (this.viewBot > this.options.length) {
+            this.viewBot = this.options.length;
+        }
 
         this.xOffsetFromRight = 210;
         this.yOffsetFromTop = 50;
 
-        let contacts = new MenuText(this.scene, this.group!, this.groupDepth!, this.x - this.xOffsetFromRight, this.y + 20, "Nearby trainers:")
+        let contacts = new MenuText(
+            this.scene,
+            this.group!,
+            this.groupDepth!,
+            this.x - this.xOffsetFromRight,
+            this.y + 20,
+            "Nearby trainers:")
         // this.yOffsetFromTop
         // this.ySpacing
 
@@ -232,4 +280,172 @@ class ListMenu extends Menu implements AkkamonMenu {
 }
 
 class RemotePlayerList extends ListMenu implements AkkamonMenu {
+
+    confirm() {
+        this.akkamonScene.pushMenu(new ChallengeDialogue(
+            this.akkamonScene,
+            ['YES', 'NO'],
+            {
+                'trainerName': this.buttons![this.index! + this.viewTop].text
+            }));
+    }
+}
+
+class ConfirmationDialogue extends Menu implements AkkamonMenu {
+    dialogueData?: {[key: string]: string}
+    options?: Array<string>
+    dialogueBox?: Dialogue
+
+    constructor(scene: AkkamonWorldScene, options: Array<string>, dialogueData: {[key: string]: string}) {
+        super(scene, "confirmation-dialogue");
+        let camera = scene.cameras.main;
+        this.setDisplaySize(200, 0.83 * 200)
+        this.setPosition(this.x + camera.width, this.y + (camera.height - 0.28 * camera.width - this.displayHeight));
+        this.xOffsetFromRight = 0.5 * this.displayWidth;
+        this.yOffsetFromTop = 0.33 * this.displayHeight - MenuText.TEXT_HEIGHT;
+        this.ySpacing! = 0.33 * this.displayHeight;
+
+        this.setPicker(0);
+        this.setButtons(options);
+        this.groupDepth = 40;
+        this.group!.setDepth(this.groupDepth!);
+
+        this.dialogueBox = new Dialogue(scene, this.group!, this.groupDepth);
+    }
+}
+
+class Dialogue extends Phaser.GameObjects.Image implements AkkamonMenu {
+    public messageQueue: Queue<string>;
+    public displayedText: MenuText;
+    public akkamonScene: AkkamonWorldScene;
+    public group: Phaser.GameObjects.Group;
+
+    constructor(scene: AkkamonWorldScene, group: Phaser.GameObjects.Group, depth: number) {
+        let camera = scene.cameras.main;
+        super(scene, camera.scrollX, camera.scrollY, "general-dialogue-box")
+        this.setOrigin(0,1);
+        this.setPosition(camera.scrollX, camera.scrollY + camera.height)
+        this.setDisplaySize(camera.width, 0.28 * camera.width);
+
+        scene.add.existing(this);
+        group.add(this);
+        this.setDepth(depth);
+
+        this.group = group;
+        this.akkamonScene = scene;
+
+        this.messageQueue = new Queue();
+        this.displayedText = new WrappedMenuText(
+            this.akkamonScene,
+            this.group,
+            depth,
+            this.x + 40,
+            this.y - this.displayHeight + 40,
+            '',
+            camera.width
+        );
+    }
+
+    selectButton() {
+    }
+    confirm() {
+    }
+
+    destroyGroup() {
+        const clonedChildren = [... this.group.getChildren()]
+        for (let child of clonedChildren) {
+            console.log("destroying child with:");
+            console.log(child);
+            console.log(child.destroy);
+            child.destroy();
+        }
+        console.log("destroying group of dialogue");
+        console.log(this.group);
+        this.group.destroy(true)
+    }
+
+    destroyAndGoBack() {
+        console.log("Destroying dialogue box!");
+        this.akkamonScene.traverseMenusBackwards();
+        this.destroyGroup();
+    }
+
+    push(messageData: string | string[]): void {
+        if (typeof messageData === 'string') {
+            this.messageQueue.push(messageData);
+        } else if (Array.isArray(messageData)) {
+            this.messageQueue.pushArray(messageData);
+        }
+    }
+
+    displayNextDialogue() {
+        this.displayedText.text = '';
+        if (this.messageQueue.peek() !== undefined) {
+            this.typewriteText(this.messageQueue.pop()!);
+        }
+    }
+
+    typewriteText(text: string) {
+            const length = text.length
+            let i = 0
+            this.scene.time.addEvent({
+                callback: () => {
+                    this.displayedText.text += text[i]
+                    ++i
+                },
+                repeat: length - 1,
+                delay: 20
+            })
+        }
+
+}
+
+class ChallengeDialogue extends ConfirmationDialogue implements AkkamonMenu {
+    challengedTrainerName: string;
+    constructor(scene: AkkamonWorldScene, options: Array<string>, dialogueData: {[key: string]: string}) {
+        super(scene, options, dialogueData);
+        this.challengedTrainerName = dialogueData['trainerName'];
+        this.dialogueBox!.push(
+            `Do you want to challenge ${this.challengedTrainerName} to a battle?`
+        );
+        this.dialogueBox!.displayNextDialogue();
+    }
+
+    confirm() {
+        if (this.buttons![this.index!].text === "YES") {
+            this.akkamonScene.requestBattleChallenge(this.challengedTrainerName);
+            this.akkamonScene.clearMenus();
+            this.akkamonScene.pushMenu(new WaitingDialogue(this.akkamonScene, new Phaser.GameObjects.Group(this.scene), 20));
+        } else {
+            this.destroyAndGoBack();
+        }
+    }
+
+    destroy() {
+        this.scene.time.removeAllEvents();
+        super.destroy();
+    }
+}
+
+class WaitingDialogue extends Dialogue {
+    waitingPrinter: any
+    constructor(scene: AkkamonWorldScene, group: Phaser.GameObjects.Group, depth: number) {
+        super(scene, group, depth);
+        this.typewriteText("Waiting on reponse...");
+        this.waitingPrinter = setInterval(() => {
+            this.displayedText.text = '';
+            this.typewriteText("Waiting on reponse...");
+        }, 3000);
+    }
+
+    destroyAndGoBack() {
+        super.destroyAndGoBack();
+    }
+
+    destroy() {
+        console.log("destroying waiting dialogue!");
+        clearInterval(this.waitingPrinter);
+        this.scene.time.removeAllEvents();
+        super.destroy();
+    }
 }

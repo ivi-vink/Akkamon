@@ -68,4 +68,8 @@ export class Stack<T> {
         this._data = new Array();
     }
 
+    cloneData() {
+        return new Array(this._data);
+    }
+
 }

@@ -13,7 +13,7 @@ export class UIControls {
 
     update() {
         if (Phaser.Input.Keyboard.JustDown(this.cursors.left)) {
-            this.menu.destroyMe();
+            this.menu.destroyAndGoBack();
         } else if (Phaser.Input.Keyboard.JustDown(this.cursors.right)) {
             this.menu.confirm();
         } else if (Phaser.Input.Keyboard.JustDown(this.cursors.up)) {

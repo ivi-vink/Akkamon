@@ -10,7 +10,7 @@ export const gameConfig: Phaser.Types.Core.GameConfig & Phaser.Types.Core.Render
     type: Phaser.AUTO,
     backgroundColor: '#125555',
     width: 800,
-    height: 600,
+    height: 800,
     pixelArt: true,
     scene: [BootScene, DemoScene]
 };

@@ -101,7 +101,7 @@ public class Trainer extends AbstractBehavior<Trainer.Command> {
     }
 
     private Trainer onNewTilePos(AkkamonNexus.RequestNewTilePos newTilePosRequest) {
-        getContext().getLog().info("Trainer {} has new {}.", trainerId, newTilePosRequest.tilePos);
+        // getContext().getLog().info("Trainer {} has new {}.", trainerId, newTilePosRequest.tilePos);
         if (isMoving()) {
             this.movementQueue.add(this.movementDirection);
         }
@@ -109,13 +109,13 @@ public class Trainer extends AbstractBehavior<Trainer.Command> {
     }
 
     private Trainer onStopMoving(AkkamonNexus.RequestStopMoving stopMovingRequest) {
-        getContext().getLog().info("Trainer {} stops to move {}.", trainerId, stopMovingRequest.direction);
+        // getContext().getLog().info("Trainer {} stops to move {}.", trainerId, stopMovingRequest.direction);
         this.movementDirection = Direction.NONE;
         return this;
     }
 
     private Trainer onStartMoving(AkkamonNexus.RequestStartMoving startMovingRequest) {
-        getContext().getLog().info("Trainer {} starts to move {}.", trainerId, startMovingRequest.direction);
+        // getContext().getLog().info("Trainer {} starts to move {}.", trainerId, startMovingRequest.direction);
         this.movementDirection = startMovingRequest.direction;
         return this;
     }

@@ -29,4 +29,21 @@ function destroyGame () {
 export let client = new Client('ws://localhost:8080');
 let game: Phaser.Game | null | undefined;
 
-if (!game) newGame();
+
+function delay(ms: number) {
+    return new Promise(resolve => {
+        setTimeout(resolve, ms);
+    });
+}
+
+async function awaitRegistrationReplyAndStart() {
+    if (!game) {
+        while (client.getSessionTrainerId() === undefined) {
+            console.log("can't start game, this trainerId is still undefined");
+            await delay(1000);
+        }
+        newGame();
+    }
+}
+
+awaitRegistrationReplyAndStart();

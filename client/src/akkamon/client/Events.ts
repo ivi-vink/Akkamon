@@ -3,10 +3,14 @@ import type { Direction } from '../render/Direction';
 
 export enum EventType {
     HEART_BEAT = "HeartBeat",
-    PLAYER_REGISTRATION = "PlayerRegistrationEvent",
+    TRAINER_REGISTRATION_REQUEST = "TrainerRegistrationRequestEvent",
+    TRAINER_REGISTRATION_REPLY = "TrainerRegistrationReplyEvent",
     START_MOVING =  "StartMoving",
     STOP_MOVING = "StopMoving",
-    NEW_TILE_POS = "NewTilePos"
+    NEW_TILE_POS = "NewTilePos",
+    INIT_BATTLE_REQUEST = "InitBattleRequestEvent",
+    INIT_BATTLE_REPLY = "InitBattleReplyEvent",
+    BATTLE_ABORTED = "BattleAborted"
 }
 
 export interface AkkamonEvent {
@@ -19,17 +23,46 @@ export type RemoteMovementQueues = {
     [trainerId: string]: { value: Array<Direction> }
 }
 
+// INCOMING EVENTS
 export interface IncomingEvent extends AkkamonEvent {
     remoteMovementQueues?: RemoteMovementQueues
+    trainerId?: string
 }
 
-export class PlayerRegistrationEvent implements AkkamonEvent {
+export class HeartBeatReplyEvent implements IncomingEvent {
 
-    public type: EventType = EventType.PLAYER_REGISTRATION;
+    public type: EventType = EventType.HEART_BEAT;
 
     constructor(
     ) { }
 }
+
+export class PlayerRegistrationReplyEvent implements IncomingEvent {
+
+    public type: EventType = EventType.TRAINER_REGISTRATION_REPLY;
+
+    constructor(
+        public trainerId: string
+    ) { }
+}
+
+export class InitBattleReplyEvent implements IncomingEvent {
+
+    public type: EventType = EventType.INIT_BATTLE_REPLY;
+
+    constructor(
+    ) { }
+}
+
+// OUTGOING EVENTS
+export class PlayerRegistrationRequestEvent implements AkkamonEvent {
+
+    public type: EventType = EventType.TRAINER_REGISTRATION_REQUEST;
+
+    constructor(
+    ) { }
+}
+
 
 export class StartMovingEvent implements AkkamonEvent {
 
@@ -61,10 +94,13 @@ export class NewTilePosEvent implements AkkamonEvent {
     ) { }
 }
 
-export class HeartBeatReplyEvent implements AkkamonEvent {
 
-    public type: EventType = EventType.HEART_BEAT;
+export class InitBattleRequestEvent implements AkkamonEvent {
+
+    public type: EventType = EventType.INIT_BATTLE_REQUEST;
 
     constructor(
+        public thisTrainer: string,
+        public otherTrainer: string
     ) { }
 }

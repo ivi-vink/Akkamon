@@ -245,13 +245,13 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
         // Turn on for logging
 
 
-        StringBuilder positions = new StringBuilder();
-        positions.append("\n" + response.sceneId.toUpperCase(Locale.ROOT) + "\n");
-        for (Map.Entry<String, MovementQueueReading> entry : response.trainerMovementQueues.entrySet()) {
-            positions.append(entry.getKey() + ": " +entry.getValue());
-            positions.append("\n");
-        }
-        getContext().getLog().info(String.valueOf(positions));
+        // StringBuilder positions = new StringBuilder();
+        // positions.append("\n" + response.sceneId.toUpperCase(Locale.ROOT) + "\n");
+        // for (Map.Entry<String, MovementQueueReading> entry : response.trainerMovementQueues.entrySet()) {
+        //     positions.append(entry.getKey() + ": " +entry.getValue());
+        //     positions.append("\n");
+        // }
+        // getContext().getLog().info(String.valueOf(positions));
 
         messageEngine.broadCastHeartBeatToScene(response.sceneId, response.trainerMovementQueues);
 
@@ -305,8 +305,8 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
     private AkkamonNexus onTrainerRegistered(TrainerRegistered reply) {
         // TODO test when registration fails?
         getContext().getLog().info("Adding {} to scene {} Live AkkamonSessions in Messaging Engine", reply.trainerId, reply.sceneId);
-        messageEngine.registerTrainerSessionToScene(reply.sceneId, reply.session);
         reply.session.setTrainerId(reply.trainerId);
+        messageEngine.registerTrainerSessionToScene(reply.sceneId, reply.session);
         return this;
     }
 
