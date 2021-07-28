@@ -1,9 +1,19 @@
 import { AkkamonEngine } from '../render/engine/AkkamonEngine';
 
-import type { AkkamonWorldScene } from '../scenes/AkkamonWorldScene';
+import type { WorldScene } from '../scenes/WorldScene';
+
+import { baseQueue } from '../DataWrappers';
+
+import type {
+    IncomingInteractionRequest
+} from './IncomingEvents';
+
 
 export class InteractionEngine extends AkkamonEngine {
-    constructor(scene: AkkamonWorldScene) {
+
+    private messageQueue = baseQueue();
+
+    constructor(scene: WorldScene) {
         super();
     }
 
@@ -11,5 +21,8 @@ export class InteractionEngine extends AkkamonEngine {
     }
 
     setAwaitingResponse() {
+    }
+
+    push() {
     }
 }

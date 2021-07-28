@@ -34,9 +34,7 @@ public class InteractionHandshaker extends AbstractBehavior<InteractionHandshake
                                 timeout,
                                 timers
                         )
-                )
-        );
-
+                ));
     }
 
     public InteractionHandshaker(ActorContext<Command> context,

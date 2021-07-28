@@ -7,7 +7,7 @@ public interface AkkamonMessageEngine {
     // broadcasts position info to WebSocket Clients
     void broadCastHeartBeatToScene(String sceneId, Map<String, AkkamonNexus.MovementQueueReading> trainerPositions);
 
-    void broadCastInteractionRequestToSessionWithTrainerIds(List<String> trainerIds, String type, String trainerId, long requestId);
+    void broadCastInteractionRequestToSessionWithTrainerIds(List<String> trainerIds, String type, String trainerId, String requestName);
 
     void registerTrainerSessionToSceneAndTrainerIdMaps(String sceneId, AkkamonSession session);
 
@@ -15,5 +15,4 @@ public interface AkkamonMessageEngine {
 
     void trainerDisconnected(AkkamonSession session);
 
-    void broadCastMessageToSessionsWithTrainerIds(List<String> needConfirmation, String type, String trainerId, long requestid);
 }

@@ -1,23 +1,14 @@
 import Phaser from 'phaser';
 
-import { AkkamonWorldScene } from './AkkamonWorldScene';
+import type {
+    BasePhaserScene
+} from '../PhaserTypes';
 
-export class DemoScene extends AkkamonWorldScene
-{
-    constructor ()
-    {
-        super('DemoScene');
-    }
+import {
+    WorldScene,
+    createWorldScene
+} from './WorldScene';
 
-    create ()
-    {
-        super.create("map", "akkamon-demo-extruded");
-    }
+let DemoScene = createWorldScene(Phaser.Scene, "DemoScene", "map", "akkamon-demo-extruded");
 
-
-    update(time: number, delta: number) {
-        this.client.updateScene(delta);
-    }
-
-
-}
+export default DemoScene;

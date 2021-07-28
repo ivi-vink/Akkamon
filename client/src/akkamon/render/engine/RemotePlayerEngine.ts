@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-import type { AkkamonWorldScene } from '../../scenes/AkkamonWorldScene';
+import type { WorldScene } from '../../scenes/WorldScene';
 import { AkkamonEngine } from '../engine/AkkamonEngine';
 
 import type { Direction } from '../Direction';
@@ -10,20 +10,23 @@ import {
 } from '../model/RemotePlayerSprite';
 
 import {
-    Queue
+    Queue,
+    baseQueue,
+    queueFromArray
 } from '../../DataWrappers';
 
-import type {
-    RemoteMovementQueues
-} from '../../client/Events';
+
+type RemoteMovementQueues = {
+    [key: string]: {value: Direction[]}
+}
 
 export class RemotePlayerEngine extends AkkamonEngine {
 
-    private scene: AkkamonWorldScene;
+    private scene: WorldScene;
 
     private trainerIdToRemotePlayerSprite: Map<string, RemotePlayerSprite> = new Map();
 
-    constructor(scene: AkkamonWorldScene) {
+    constructor(scene: WorldScene) {
         super();
         this.scene = scene;
     }
@@ -69,7 +72,7 @@ export class RemotePlayerEngine extends AkkamonEngine {
                                                               tilePos: new Phaser.Math.Vector2(this.scene.spawnPointTilePos!),
                                                               texture: this.scene.textures.get("atlas"),
                                                               frame: "misa-front",
-                                                              moveQueue: new Queue(moveQueue)
+                                                              moveQueue: queueFromArray(moveQueue)
                                                               }
                                                           ));
                 } else {

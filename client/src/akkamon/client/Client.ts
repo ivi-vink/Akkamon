@@ -14,19 +14,10 @@ import { InteractionEngine } from './InteractionEngine';
 
 import type { AkkamonClient } from './AkkamonClient';
 
-import type { AkkamonWorldScene } from '../scenes/AkkamonWorldScene';
+import type { WorldScene } from '../scenes/WorldScene';
 
 import { DirectionToAnimation } from '../render/DirectionToAnimation';
 import { Direction } from '../render/Direction';
-
-import {
-    EventType,
-    HeartBeatReplyEvent,
-    IncomingEvent,
-    AkkamonEvent,
-    InteractionRequestEvent,
-    Interaction
-} from './Events';
 
 function delay(ms: number) {
     return new Promise(resolve => {
@@ -34,13 +25,28 @@ function delay(ms: number) {
     });
 }
 
+import {
+    EventType,
+    AkkamonEvent
+} from './EventType'
+
+import type {
+    IncomingEvent,
+} from './IncomingEvents';
+
+import {
+    HeartBeatReplyEvent,
+    Interaction,
+    OutgoingInteractionRequestEvent
+} from './OutgoingEvents';
+
 
 export class Client implements AkkamonClient
 {
 
     private session: AkkamonSession;
 
-    private scene?: AkkamonWorldScene;
+    private scene?: WorldScene;
     private gridPhysics?: GridPhysics;
     private controls?: GridControls | UIControls;
 
@@ -67,6 +73,7 @@ export class Client implements AkkamonClient
 
     in(eventString: string) {
         let event: IncomingEvent = JSON.parse(eventString);
+        // this[event.type](event);
         // console.log(event);
         switch (event.type) {
             case EventType.HEART_BEAT:
@@ -81,12 +88,14 @@ export class Client implements AkkamonClient
                     this.session.trainerId = event.trainerId;
                 }
                 break;
-            case EventType.INTERACTION_REPLY:
-                console.log("Received an interaction reply!");
+            case EventType.INTERACTION_REQUEST:
+                console.log("Received an interaction request!");
                 console.log(event);
+                // this.interactionEngine!.push(event);
                 break;
             default:
                 console.log("ignored incoming event, doesn't match EventType interface.");
+                console.log(event.type);
                 break;
         }
     }
@@ -117,8 +126,8 @@ export class Client implements AkkamonClient
         this.controls = new GridControls(this.scene!.input, this.gridPhysics!);
     }
 
-    requestInitPlayerSprite(
-        scene: AkkamonWorldScene
+    requestInitWorldScene(
+        scene: WorldScene
     ): void {
 
         this.scene = scene;
@@ -152,7 +161,7 @@ export class Client implements AkkamonClient
     }
 
     private initAnimation(
-        scene: AkkamonWorldScene,
+        scene: WorldScene,
         player: PlayerSprite
     ): void {
 
@@ -168,7 +177,7 @@ export class Client implements AkkamonClient
         camera.setBounds(0, 0, scene.map!.widthInPixels, scene.map!.heightInPixels);
     }
 
-    private createPlayerAnimation(scene: AkkamonWorldScene, direction: Direction, start: number, end: number) {
+    private createPlayerAnimation(scene: WorldScene, direction: Direction, start: number, end: number) {
         let characterAnimations = DirectionToAnimation.directionToAnimation['misa'];
 
         scene.anims.create({
@@ -196,7 +205,7 @@ export class Client implements AkkamonClient
         console.log(this.getCurrentSceneKey());
         console.log(JSON.stringify(interaction));
         this.interactionEngine!.setAwaitingResponse();
-        this.send(new InteractionRequestEvent(
+        this.send(new OutgoingInteractionRequestEvent(
             this.getCurrentSceneKey(),
             interaction
         ));

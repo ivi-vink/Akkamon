@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-import { AkkamonWorldScene } from '../../scenes/AkkamonWorldScene';
+import { TILE_SIZE } from '../../scenes/WorldScene';
 
 import { AkkamonEngine } from './AkkamonEngine';
 
@@ -12,7 +12,7 @@ import {
     StartMovingEvent,
     StopMovingEvent,
     NewTilePosEvent
-} from '../../client/Events';
+} from '../../client/OutgoingEvents';
 
 export class GridPhysics extends AkkamonEngine {
 
@@ -26,7 +26,7 @@ export class GridPhysics extends AkkamonEngine {
     }
 
     private movementDirection: Direction = Direction.NONE;
-    private readonly speedPixelsPerSecond: number = AkkamonWorldScene.TILE_SIZE * 4;
+    private readonly speedPixelsPerSecond: number = TILE_SIZE * 4;
 
     private tileSizePixelsWalked: number = 0;
 
@@ -90,7 +90,7 @@ export class GridPhysics extends AkkamonEngine {
             this.spriteMovement(pixelsToWalkThisUpdate);
             this.updatePlayerSpriteTilePosition();
         } else {
-            this.spriteMovement(AkkamonWorldScene.TILE_SIZE - this.tileSizePixelsWalked);
+            this.spriteMovement(TILE_SIZE - this.tileSizePixelsWalked);
             this.stopMoving();
         }
     }
@@ -120,7 +120,7 @@ export class GridPhysics extends AkkamonEngine {
     private spriteMovement(pixelsToMove: number) {
 
         this.tileSizePixelsWalked += pixelsToMove;
-        this.tileSizePixelsWalked %= AkkamonWorldScene.TILE_SIZE;
+        this.tileSizePixelsWalked %= TILE_SIZE;
 
 
         const directionVec = GridPhysics.movementDirectionVectors[
@@ -139,7 +139,7 @@ export class GridPhysics extends AkkamonEngine {
         pixelsToWalkThisUpdate: number
     ): boolean {
         return (
-            this.tileSizePixelsWalked + pixelsToWalkThisUpdate >= AkkamonWorldScene.TILE_SIZE
+            this.tileSizePixelsWalked + pixelsToWalkThisUpdate >= TILE_SIZE
         );
     }
 

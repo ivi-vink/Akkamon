@@ -1,9 +1,5 @@
-import {
-    DemoScene
-} from './scenes/DemoScene';
-import {
-    BootScene
-} from './scenes/BootScene';
+import DemoScene from './scenes/DemoScene';
+import BootScene from './scenes/BootScene';
 
 
 export const gameConfig: Phaser.Types.Core.GameConfig & Phaser.Types.Core.RenderConfig = {

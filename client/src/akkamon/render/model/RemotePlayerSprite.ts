@@ -1,10 +1,13 @@
 import Phaser from 'phaser';
-import { AkkamonWorldScene } from '../../scenes/AkkamonWorldScene';
+import { TILE_SIZE } from '../../scenes/WorldScene';
 import { PlayerSprite } from '../model/PlayerSprite';
 import { GridPhysics } from '../engine/GridPhysics';
 import { Direction } from '../Direction';
 
-import { Queue } from '../../DataWrappers';
+import {
+    Queue,
+    baseQueue
+} from '../../DataWrappers';
 
 type RemotePlayerSpriteConfig = {
     scene: Phaser.Scene,
@@ -17,11 +20,11 @@ type RemotePlayerSpriteConfig = {
 export class RemotePlayerSprite extends PlayerSprite  {
 
     private lastTilePos?: Phaser.Math.Vector2;
-    private moveQueue: Queue<Direction> = new Queue();
+    private moveQueue: Queue<Direction> = baseQueue();
 
     private movementDirection: Direction = Direction.NONE;
 
-    private speedPixelsPerSecond: number = AkkamonWorldScene.TILE_SIZE * 4;
+    private speedPixelsPerSecond: number = TILE_SIZE * 4;
 
     private tileSizePixelsWalked: number = 0;
 
@@ -46,7 +49,7 @@ export class RemotePlayerSprite extends PlayerSprite  {
         } else if (this.shouldContinueMoving()) {
             this.move(pixelsToWalkThisUpdate);
         } else {
-            this.move(AkkamonWorldScene.TILE_SIZE - this.tileSizePixelsWalked);
+            this.move(TILE_SIZE - this.tileSizePixelsWalked);
             this.stopMoving();
         }
     }
@@ -61,12 +64,12 @@ export class RemotePlayerSprite extends PlayerSprite  {
     }
 
     willCrossTileBorderThisUpdate(pixelsToWalkThisUpdate: number): boolean {
-        return (this.tileSizePixelsWalked + pixelsToWalkThisUpdate) >= AkkamonWorldScene.TILE_SIZE;
+        return (this.tileSizePixelsWalked + pixelsToWalkThisUpdate) >= TILE_SIZE;
     }
 
     move(pixelsToMove: number): void {
         this.tileSizePixelsWalked += pixelsToMove;
-        this.tileSizePixelsWalked %= AkkamonWorldScene.TILE_SIZE;
+        this.tileSizePixelsWalked %= TILE_SIZE;
 
         const directionVec = GridPhysics.movementDirectionVectors[this.movementDirection]!.clone();
 

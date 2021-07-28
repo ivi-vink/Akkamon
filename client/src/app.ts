@@ -15,6 +15,8 @@ import Phaser from 'phaser';
 import { gameConfig } from './akkamon/GameConfig';
 import { Client } from './akkamon/client/Client';
 
+export var client = new Client('ws://localhost:8080');
+
 function newGame () {
   if (game) return;
   game = new Phaser.Game(gameConfig);
@@ -26,7 +28,6 @@ function destroyGame () {
   game = null;
 }
 
-export let client = new Client('ws://localhost:8080');
 let game: Phaser.Game | null | undefined;
 
 

@@ -244,17 +244,19 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
 
     private AkkamonNexus onInteractionRequest(RequestInteraction interactionRequest) {
         List<String> needConfirmation = interactionRequest.forwardTo;
-        messageEngine.broadCastMessageToSessionsWithTrainerIds(needConfirmation, interactionRequest.type, interactionRequest.trainerId, interactionRequest.requestId);
 
-        ActorRef<InteractionHandshaker.Command> getContext().spawn(
-                        InteractionHandshaker.create(
+        getContext().getLog().info("Creating interactionHandshaker of type {} from {} to {} ", interactionRequest.type, interactionRequest.trainerId, interactionRequest.forwardTo);
+
+        String requestName = "interaction-handshaker-" + interactionRequest.type + "-" + interactionRequest.trainerId + "-" + interactionRequest.requestId;
+        getContext().spawn(InteractionHandshaker.create(
                                 interactionRequest.trainerId,
                                 interactionRequest.forwardTo,
                                 interactionRequest.requestId,
                                 interactionRequest.replyTo,
                                 Duration.ofSeconds(20)
-                        )
-                );
+                        ), requestName);
+
+        messageEngine.broadCastInteractionRequestToSessionWithTrainerIds(needConfirmation, interactionRequest.type, interactionRequest.trainerId, requestName);
         return this;
     }
 

@@ -1,6 +1,7 @@
-import type { AkkamonWorldScene } from '../scenes/AkkamonWorldScene';
+import type { WorldScene } from '../scenes/WorldScene';
 import { Direction } from '../render/Direction';
 import {
+    baseQueue,
     Queue
 } from '../DataWrappers';
 
@@ -71,7 +72,7 @@ export interface AkkamonMenu {
 
 class Menu extends Phaser.GameObjects.Image implements AkkamonMenu {
 
-    akkamonScene: AkkamonWorldScene
+    akkamonScene: WorldScene
 
     public group?: Phaser.GameObjects.Group;
 
@@ -104,7 +105,7 @@ class Menu extends Phaser.GameObjects.Image implements AkkamonMenu {
         throw new Error('Confirm method should be present in a Menu implementation');
     }
 
-    constructor(scene: AkkamonWorldScene, imageKey: string) {
+    constructor(scene: WorldScene, imageKey: string) {
         let camera = scene.cameras.main;
 
         super(scene, camera.scrollX, camera.scrollY, imageKey)
@@ -177,7 +178,7 @@ class Menu extends Phaser.GameObjects.Image implements AkkamonMenu {
 }
 
 export class PauseMenu extends Menu implements AkkamonMenu {
-    constructor(scene: AkkamonWorldScene) {
+    constructor(scene: WorldScene) {
         super(scene, "pause-menu")
         let camera = scene.cameras.main;
         this.setPosition(this.x + camera.width, this.y);
@@ -206,7 +207,7 @@ class ListMenu extends Menu implements AkkamonMenu {
     viewBot: number = 4;
 
     constructor(
-        scene: AkkamonWorldScene,
+        scene: WorldScene,
         options: Array<string>
     ) {
         super(scene, "pause-menu")
@@ -296,7 +297,7 @@ class ConfirmationDialogue extends Menu implements AkkamonMenu {
     options?: Array<string>
     dialogueBox?: Dialogue
 
-    constructor(scene: AkkamonWorldScene, options: Array<string>, dialogueData: {[key: string]: string}) {
+    constructor(scene: WorldScene, options: Array<string>, dialogueData: {[key: string]: string}) {
         super(scene, "confirmation-dialogue");
         let camera = scene.cameras.main;
         this.setDisplaySize(200, 0.83 * 200)
@@ -317,10 +318,10 @@ class ConfirmationDialogue extends Menu implements AkkamonMenu {
 class Dialogue extends Phaser.GameObjects.Image implements AkkamonMenu {
     public messageQueue: Queue<string>;
     public displayedText: MenuText;
-    public akkamonScene: AkkamonWorldScene;
+    public akkamonScene: WorldScene;
     public group: Phaser.GameObjects.Group;
 
-    constructor(scene: AkkamonWorldScene, group: Phaser.GameObjects.Group, depth: number) {
+    constructor(scene: WorldScene, group: Phaser.GameObjects.Group, depth: number) {
         let camera = scene.cameras.main;
         super(scene, camera.scrollX, camera.scrollY, "general-dialogue-box")
         this.setOrigin(0,1);
@@ -334,7 +335,7 @@ class Dialogue extends Phaser.GameObjects.Image implements AkkamonMenu {
         this.group = group;
         this.akkamonScene = scene;
 
-        this.messageQueue = new Queue();
+        this.messageQueue = baseQueue();
         this.displayedText = new WrappedMenuText(
             this.akkamonScene,
             this.group,
@@ -402,7 +403,7 @@ class Dialogue extends Phaser.GameObjects.Image implements AkkamonMenu {
 
 class ChallengeDialogue extends ConfirmationDialogue implements AkkamonMenu {
     challengedTrainerName: string;
-    constructor(scene: AkkamonWorldScene, options: Array<string>, dialogueData: {[key: string]: string}) {
+    constructor(scene: WorldScene, options: Array<string>, dialogueData: {[key: string]: string}) {
         super(scene, options, dialogueData);
         this.challengedTrainerName = dialogueData['trainerName'];
         this.dialogueBox!.push(
@@ -429,7 +430,7 @@ class ChallengeDialogue extends ConfirmationDialogue implements AkkamonMenu {
 
 class WaitingDialogue extends Dialogue {
     waitingPrinter: any
-    constructor(scene: AkkamonWorldScene, group: Phaser.GameObjects.Group, depth: number) {
+    constructor(scene: WorldScene, group: Phaser.GameObjects.Group, depth: number) {
         super(scene, group, depth);
         this.typewriteText("Waiting on reponse...");
         this.waitingPrinter = setInterval(() => {

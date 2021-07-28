@@ -2,10 +2,7 @@ package akkamon.api;
 
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.ActorSystem;
-import akkamon.api.models.Event;
-import akkamon.api.models.HeartBeatEvent;
-import akkamon.api.models.InteractionRequest;
-import akkamon.api.models.TrainerRegistrationReplyEvent;
+import akkamon.api.models.*;
 import akkamon.domain.AkkamonMessageEngine;
 import akkamon.domain.AkkamonNexus;
 import akkamon.domain.AkkamonSession;
@@ -19,6 +16,7 @@ public class MessagingEngine implements AkkamonMessageEngine {
 
     private Map<String, Set<AkkamonSession>> sceneIdToAkkamonSessions = new HashMap<>();
     private Map<String, AkkamonSession> trainerIdToAkkamonSessions = new HashMap<>();
+    private Set<String> pendingInteractioRequestNameSet = new HashSet<>();
     private Gson gson = new Gson();
 
     private ActorRef<AkkamonNexus.Command> system;
@@ -67,19 +65,20 @@ public class MessagingEngine implements AkkamonMessageEngine {
     }
 
     @Override
-    public void broadCastInteractionRequestToSessionWithTrainerIds(List<String> trainerIds, String type, String trainerId, long requestId) {
+    public void broadCastInteractionRequestToSessionWithTrainerIds(List<String> trainerIds, String type, String trainerId, String requestName) {
+        System.out.println("Sending interaction request " + requestName);
+        this.pendingInteractioRequestNameSet.add(requestName);
         for (String id : trainerIds) {
             AkkamonSession session = trainerIdToAkkamonSessions.get(id);
             if (session != null) {
-                session.send(gson.toJson(
-                        new InteractionRequest(
-                                type,
-                                trainerId,
-                                requestId
-                        )
-                ));
+                session.send(gson.toJson(new InteractionRequest(
+                        type,
+                        id,
+                        requestName
+                )));
             }
         }
+
     }
 
     @Override
@@ -140,7 +139,7 @@ public class MessagingEngine implements AkkamonMessageEngine {
                 System.out.println(event.interaction);
                 system.tell(new AkkamonNexus.RequestInteraction(
                         UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE,
-                        event.type.name(),
+                        event.interaction.type,
                         event.sceneId,
                         event.interaction.requestingTrainerId,
                         event.interaction.receivingTrainerIds,
