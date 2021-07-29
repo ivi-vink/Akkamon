@@ -24,7 +24,7 @@ export class RemotePlayerEngine extends AkkamonEngine {
 
     private scene: WorldScene;
 
-    private trainerIdToRemotePlayerSprite: Map<string, RemotePlayerSprite> = new Map();
+    private trainerIDToRemotePlayerSprite: Map<string, RemotePlayerSprite> = new Map();
 
     constructor(scene: WorldScene) {
         super();
@@ -37,13 +37,13 @@ export class RemotePlayerEngine extends AkkamonEngine {
     }
 
     pushMovesToSprites(remoteMovementQueues: RemoteMovementQueues) {
-        this.trainerIdToRemotePlayerSprite.forEach((remoteSprite: RemotePlayerSprite, key: string) => {
+        this.trainerIDToRemotePlayerSprite.forEach((remoteSprite: RemotePlayerSprite, key: string) => {
             remoteSprite.push(remoteMovementQueues[key].value);
         });
     }
 
     update(delta: number): void {
-        this.trainerIdToRemotePlayerSprite.forEach((remoteSprite: RemotePlayerSprite, key: string) => {
+        this.trainerIDToRemotePlayerSprite.forEach((remoteSprite: RemotePlayerSprite, key: string) => {
             if (remoteSprite.isMoving()) {
                 console.log("remote player currently walking");
                 remoteSprite.updatePixelPosition(delta);
@@ -55,18 +55,18 @@ export class RemotePlayerEngine extends AkkamonEngine {
     }
 
     updateMembers(newRemoteMovementQueues: RemoteMovementQueues) {
-        const traineridToQueueValue = newRemoteMovementQueues;
+        const trainerIDToQueueValue = newRemoteMovementQueues;
 
         Object.keys(newRemoteMovementQueues).forEach((key: string) => {
 
-            var moveQueue = traineridToQueueValue[key].value;
+            var moveQueue = trainerIDToQueueValue[key].value;
             if (moveQueue !== undefined) {
 
                 // console.log("-> key: " + key + " has position " + newTilePos.x + ", " + newTilePos.y);
 
-                if (!this.trainerIdToRemotePlayerSprite.has(key)) {
+                if (!this.trainerIDToRemotePlayerSprite.has(key)) {
                     // console.log("adding remote player sprite for " + key);
-                    this.trainerIdToRemotePlayerSprite.set(key,
+                    this.trainerIDToRemotePlayerSprite.set(key,
                                                           new RemotePlayerSprite({
                                                               scene: this.scene,
                                                               tilePos: new Phaser.Math.Vector2(this.scene.spawnPointTilePos!),
@@ -82,11 +82,11 @@ export class RemotePlayerEngine extends AkkamonEngine {
 
         });
 
-        this.trainerIdToRemotePlayerSprite.forEach((value: RemotePlayerSprite, key: string) => {
+        this.trainerIDToRemotePlayerSprite.forEach((value: RemotePlayerSprite, key: string) => {
             if (!(key in newRemoteMovementQueues)) {
                 // console.log("removing remote player sprite for " + key);
-                this.trainerIdToRemotePlayerSprite.get(key)!.destroy();
-                this.trainerIdToRemotePlayerSprite.delete(key);
+                this.trainerIDToRemotePlayerSprite.get(key)!.destroy();
+                this.trainerIDToRemotePlayerSprite.delete(key);
             } else {
                 // console.log("Player " + key + " was not removed!");
             }
@@ -94,6 +94,6 @@ export class RemotePlayerEngine extends AkkamonEngine {
     }
 
     getData() {
-        return this.trainerIdToRemotePlayerSprite;
+        return this.trainerIDToRemotePlayerSprite;
     }
 }

@@ -39,7 +39,10 @@ import {
     HeartBeatReplyEvent,
     Interaction,
     OutgoingInteractionRequestEvent,
-    InteractionReplyEvent
+    InteractionReplyEvent,
+    StartMovingEvent,
+    NewTilePosEvent,
+    StopMovingEvent
 } from './OutgoingEvents';
 
 
@@ -85,9 +88,10 @@ export class Client implements AkkamonClient
                 this.send(new HeartBeatReplyEvent());
                 break;
             case EventType.TRAINER_REGISTRATION_REPLY:
-                if (event.trainerId !== undefined) {
-                    console.log("setting Session trainerId to: " + event.trainerId);
-                    this.session.trainerId = event.trainerId;
+                if (event.trainerID !== undefined) {
+                    console.log("setting Session trainerID to: ");
+                    console.log(event.trainerID);
+                    this.session.trainerID = event.trainerID;
                 }
                 break;
             case EventType.INTERACTION_REQUEST:
@@ -213,23 +217,19 @@ export class Client implements AkkamonClient
 
     sendInteractionRequest(interaction: Interaction) {
         console.log("sent an interaction request!");
-        console.log(this.getCurrentSceneKey());
+        console.log(this.getTrainerID());
         console.log(JSON.stringify(interaction));
 
         this.interactionEngine!.setAwaitingInteractionRequestInitiation(true);
 
         this.send(new OutgoingInteractionRequestEvent(
-            this.getCurrentSceneKey(),
+            this.getTrainerID()!,
             interaction
         ));
     }
 
-    getSessionTrainerId() {
-        return this.session.trainerId;
-    }
-
-    getCurrentSceneKey() {
-        return this.scene!.scene.key;
+    getTrainerID() {
+        return this.session.trainerID;
     }
 
     sendInteractionReply(value: boolean, requestName: string) {
@@ -237,10 +237,30 @@ export class Client implements AkkamonClient
         this.interactionEngine!.setAnswering(false);
         this.interactionEngine!.setWaitingForInteractionToStart(true);
         this.send(new InteractionReplyEvent(
-            this.getSessionTrainerId()!,
-            this.getCurrentSceneKey()!,
+            this.getTrainerID()!,
             requestName,
             value
         ));
+    }
+
+    sendStartMove(direction: Direction) {
+        this.send(new StartMovingEvent(this.getTrainerID()!, direction));
+    }
+
+    sendNewTilePos(tilePos: {x: number, y: number}) {
+        this.send(new NewTilePosEvent(
+                this.getTrainerID()!, tilePos
+            )
+        );
+    }
+
+    sendStopMoving(direction: Direction) {
+        this.send(
+            new StopMovingEvent(
+                this.getTrainerID()!,
+                direction
+            )
+        );
+
     }
 }

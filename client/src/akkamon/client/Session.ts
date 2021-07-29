@@ -1,11 +1,7 @@
-import type Player from './player';
+import type {
+    TrainerID
+} from './OutgoingEvents';
 
 export default interface AkkamonSession extends WebSocket {
-    trainerId?: string
-
-}
-
-interface User {
-    name: string
-    password: string
+    trainerID?: TrainerID;
 }

@@ -4,7 +4,7 @@ import akka.actor.typed.ActorRef;
 import akka.actor.typed.ActorSystem;
 import akkamon.api.models.*;
 import akkamon.domain.AkkamonMessageEngine;
-import akkamon.domain.AkkamonNexus;
+import akkamon.domain.actors.AkkamonNexus;
 import akkamon.domain.AkkamonSession;
 import akkamon.domain.InteractionHandshaker;
 import com.google.gson.Gson;
@@ -15,15 +15,17 @@ import java.util.concurrent.TimeUnit;
 
 public class MessagingEngine implements AkkamonMessageEngine {
 
+    // nexus: a connection or series of connections linking two or more things.
+    private ActorRef<AkkamonNexus.Command> nexus;
+
     private Map<String, Set<AkkamonSession>> sceneIdToAkkamonSessions = new HashMap<>();
-    private Map<String, AkkamonSession> trainerIdToAkkamonSessions = new HashMap<>();
+    private Map<AkkamonNexus.TrainerID, AkkamonSession> trainerIDToAkkamonSessions = new HashMap<>();
     private Map<String, ActorRef<InteractionHandshaker.Command>> pendingInteractioRequestToHandshaker = new HashMap<>();
+
     private Gson gson = new Gson();
 
-    private ActorRef<AkkamonNexus.Command> system;
-
     public MessagingEngine() {
-        this.system = ActorSystem.create(AkkamonNexus.create(this), "akkamon-system");
+        this.nexus = ActorSystem.create(AkkamonNexus.create(this), "akkamon-system");
 
         ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(2);
         executor.scheduleAtFixedRate(new Runnable() {
@@ -36,27 +38,29 @@ public class MessagingEngine implements AkkamonMessageEngine {
     }
 
     private void heartBeat() {
-        system.tell(new AkkamonNexus.RequestHeartBeat(
+        nexus.tell(new AkkamonNexus.RequestHeartBeat(
                 UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE,
-                system
+                nexus
                 ));
     }
 
     @Override
-    public void broadCastHeartBeatToScene(String sceneId,
-                                          Map<String, AkkamonNexus.MovementQueueReading> trainerPositions) {
+    public void broadCastHeartBeatToScene(String sceneId, Map<AkkamonNexus.TrainerID, AkkamonNexus.MovementQueueReading> trainerPositions) {
+
         Set<AkkamonSession> sceneSessions = sceneIdToAkkamonSessions.get(sceneId);
         // System.out.println(sceneSessions);
         // System.out.println(sceneIdToAkkamonSessions.keySet());
         if (sceneSessions != null) {
             for (AkkamonSession session : sceneSessions) {
-                Map<String, AkkamonNexus.MovementQueueReading> withoutSelf = new HashMap<>(trainerPositions);
-                withoutSelf.remove(session.getTrainerId());
+                Map<AkkamonNexus.TrainerID, AkkamonNexus.MovementQueueReading> withoutSelf = new HashMap<>(trainerPositions);
+                withoutSelf.remove(session.gettrainerID());
+
                 HeartBeatEvent heartBeat = new HeartBeatEvent(
                         withoutSelf
                 );
+
                 String heartBeatMessage = gson.toJson(heartBeat);
-                // System.out.println("Sending to " + session.getTrainerId());
+                // System.out.println("Sending to " + session.gettrainerID());
                 // System.out.println(heartBeatMessage);
                 session.send(
                         heartBeatMessage
@@ -66,14 +70,21 @@ public class MessagingEngine implements AkkamonMessageEngine {
     }
 
     @Override
-    public void broadCastInteractionRequestToSessionWithTrainerIds(List<String> trainerIds, String type, String trainerId, String requestName, ActorRef<InteractionHandshaker.Command> handshaker) {
+    public void broadCastInteractionRequestToSessionWithtrainerIDs(
+            List<AkkamonNexus.TrainerID> trainerIDs,
+            String type,
+            AkkamonNexus.TrainerID trainerID,
+            String requestName,
+            ActorRef<InteractionHandshaker.Command> handshaker) {
+
         System.out.println("Sending interaction request " + requestName);
         this.pendingInteractioRequestToHandshaker.put(requestName, handshaker);
-        trainerIds.add(trainerId);
-        for (String id : trainerIds) {
-            AkkamonSession session = trainerIdToAkkamonSessions.get(id);
+        trainerIDs.add(trainerID);
+
+        for (AkkamonNexus.TrainerID id : trainerIDs) {
+            AkkamonSession session = trainerIDToAkkamonSessions.get(id);
             if (session != null) {
-                session.send(gson.toJson(new InteractionRequest(
+                session.send(gson.toJson(new OutgoingInteractionRequest(
                         type,
                         id,
                         requestName
@@ -86,33 +97,35 @@ public class MessagingEngine implements AkkamonMessageEngine {
 
 
     @Override
-    public void registerTrainerSessionToSceneAndTrainerIdMaps(String sceneId, AkkamonSession session) {
-        System.out.println("Registering session to scene " + sceneId);
-        Set<AkkamonSession> sceneIdMapping = sceneIdToAkkamonSessions.get(sceneId);
-        AkkamonSession trainerIdMapping = trainerIdToAkkamonSessions.get(session.getTrainerId());
+    public void registerTrainerSessionToSceneAndtrainerIDMaps(AkkamonNexus.TrainerID trainerID, AkkamonSession session) {
+        System.out.println("Registering session to scene " + trainerID.scene);
+
+        Set<AkkamonSession> sceneIdMapping = sceneIdToAkkamonSessions.get(trainerID.scene);
+        // AkkamonSession trainerIDMapping = trainerIDToAkkamonSessions.get(session.gettrainerID());
+
         if (sceneIdMapping != null) {
             sceneIdMapping.add(session);
         } else {
             sceneIdMapping = new HashSet<>();
             sceneIdMapping.add(session);
-            sceneIdToAkkamonSessions.put(sceneId,
+            sceneIdToAkkamonSessions.put(trainerID.scene,
                     sceneIdMapping
             );
             System.out.println(sceneIdToAkkamonSessions.keySet());
         }
 
-        trainerIdToAkkamonSessions.put(session.getTrainerId(), session);
-        System.out.println(trainerIdToAkkamonSessions);
+        trainerIDToAkkamonSessions.put(session.gettrainerID(), session);
+        System.out.println(trainerIDToAkkamonSessions);
 
-        System.out.println("Sending trainerId: " + session.getTrainerId());
+        System.out.println("Sending trainerID: " + session.gettrainerID());
         // TODO what if registration goes wrong ...
         session.send(
-                gson.toJson(new TrainerRegistrationReplyEvent(session.getTrainerId()))
+                gson.toJson(new TrainerRegistrationReplyEvent(session.gettrainerID()))
         );
     }
 
     @Override
-    public void removeTrainerSessionFromScene(String sceneId, AkkamonSession session) {
+    public void removeTrainerSessionFromScene(AkkamonNexus.TrainerID sceneId, AkkamonSession session) {
         this.sceneIdToAkkamonSessions.get(sceneId).remove(session);
     }
 
@@ -123,12 +136,12 @@ public class MessagingEngine implements AkkamonMessageEngine {
             if (entry.getValue().contains(session)) sceneId = entry.getKey();
         }
 
-        system.tell(new AkkamonNexus.RequestTrainerOffline(
+        nexus.tell(new AkkamonNexus.RequestTrainerOffline(
                 UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE,
-                session.getTrainerId(),
+                session.gettrainerID(),
                 sceneId,
                 session,
-                system
+                nexus
                 ));
     }
 
@@ -138,9 +151,10 @@ public class MessagingEngine implements AkkamonMessageEngine {
     }
 
     @Override
-    public void broadCastInteractionStart(String requestName, String interactionType, Set<String> waitingToStartInteraction) {
-        for (String trainerId : waitingToStartInteraction) {
-            AkkamonSession session = trainerIdToAkkamonSessions.get(trainerId);
+    public void broadCastInteractionStart(String requestName, String interactionType, Set<AkkamonNexus.TrainerID> waitingToStartInteraction) {
+        for (AkkamonNexus.TrainerID trainerID : waitingToStartInteraction) {
+
+            AkkamonSession session = trainerIDToAkkamonSessions.get(trainerID);
             session.send(gson.toJson(
                     new InteractionStartEvent(
                             requestName,
@@ -152,75 +166,74 @@ public class MessagingEngine implements AkkamonMessageEngine {
     }
 
     @Override
-    public void broadCastHandshakeFail(String requestName, Set<String> waitingToStartInteraction) {
+    public void broadCastHandshakeFail(String requestName, Set<AkkamonNexus.TrainerID> waitingToStartInteraction) {
         System.out.println("Handshake fail not implemented yet!");
     }
 
     void incoming(AkkamonSession session, String message) {
+        System.out.println(message);
         Event event = gson.fromJson(message, Event.class);
         if (event == null) {
             System.out.println("Received non-supported message DTO.");
             return;
         }
-        // TODO use session trainerId
+        // TODO use session trainerID
         String sceneId = "DemoScene";
 
 
         switch (event.type) {
             case INTERACTION_REPLY:
                 System.out.println("received interaction reply!");
-                sendToHandshaker(event.requestName, event.trainerId, event.sceneId, event.value);
+                sendToHandshaker(event.requestName, event.trainerID, event.value);
                 break;
             case INTERACTION_REQUEST:
                 System.out.println("received interaction request");
                 System.out.println(event.interaction);
-                system.tell(new AkkamonNexus.RequestInteraction(
+                nexus.tell(new AkkamonNexus.RequestInteraction(
                         UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE,
                         event.interaction.type,
-                        event.sceneId,
-                        event.interaction.requestingTrainerId,
-                        event.interaction.receivingTrainerIds,
-                        system
+                        event.trainerID,
+                        event.interaction.receivingtrainerIDs,
+                        nexus
                 ));
                 break;
             case START_MOVING:
-                system.tell(new AkkamonNexus.RequestStartMoving(
+                System.out.println(message);
+                nexus.tell(new AkkamonNexus.RequestStartMoving(
                         UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE,
-                        session.getTrainerId(),
-                        event.sceneId,
+                        event.trainerID,
                         event.direction,
-                        system
+                        nexus
                 ));
                 break;
             case NEW_TILE_POS:
-                system.tell(
+                nexus.tell(
                         new AkkamonNexus.RequestNewTilePos(
                                 UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE,
-                                session.getTrainerId(),
-                                event.sceneId,
+                                event.trainerID,
                                 event.tilePos,
-                                system
+                                nexus
                         )
                 );
                 break;
             case STOP_MOVING:
-                system.tell(
+                nexus.tell(
                         new AkkamonNexus.RequestStopMoving(
                             UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE,
-                            session.getTrainerId(),
-                            event.sceneId,
+                            event.trainerID,
                             event.direction,
-                            system
+                            nexus
                         )
                 );
                 break;
             case TRAINER_REGISTRATION_REQUEST:
-                String trainerId = String.valueOf(sceneIdToAkkamonSessions.get(sceneId) == null ? 1 : sceneIdToAkkamonSessions.get(sceneId).size() + 1);
-                system.tell(new AkkamonNexus.RequestTrainerRegistration(
-                        trainerId,
+                // Here we make the trainerID and the scene is hard coded!
+                String trainerName = String.valueOf(sceneIdToAkkamonSessions.get(sceneId) == null ? 1 : sceneIdToAkkamonSessions.get(sceneId).size() + 1);
+                nexus.tell(new AkkamonNexus.RequestTrainerRegistration(
+                        trainerName,
                         sceneId,
                         session,
-                        system
+                        nexus
                 ));
                 break;
             case HEART_BEAT:
@@ -230,11 +243,11 @@ public class MessagingEngine implements AkkamonMessageEngine {
 
     }
 
-    private void sendToHandshaker(String requestName, String trainerId, String sceneId, boolean value) {
+    private void sendToHandshaker(String requestName, AkkamonNexus.TrainerID trainerID, boolean value) {
         ActorRef<InteractionHandshaker.Command> handshaker = pendingInteractioRequestToHandshaker.get(requestName);
         if (handshaker != null) {
             handshaker.tell(
-                    new InteractionHandshaker.InteractionReply(requestName, trainerId, sceneId, value)
+                    new InteractionHandshaker.InteractionReply(requestName, trainerID, value)
             );
         }
     }

@@ -1,5 +1,6 @@
 package akkamon.api;
 
+import akkamon.domain.actors.AkkamonNexus;
 import akkamon.domain.AkkamonSession;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketAdapter;
@@ -10,7 +11,7 @@ import java.util.concurrent.CountDownLatch;
 
 public class EventSocket extends WebSocketAdapter implements AkkamonSession {
     private final CountDownLatch closureLatch = new CountDownLatch(1);
-    private String trainerId;
+    private AkkamonNexus.TrainerID trainerID;
 
     @Override
     public void onWebSocketConnect(Session sess)
@@ -59,12 +60,12 @@ public class EventSocket extends WebSocketAdapter implements AkkamonSession {
     }
 
     @Override
-    public void setTrainerId(String trainerId) {
-        this.trainerId = trainerId;
+    public void settrainerID(AkkamonNexus.TrainerID trainerID) {
+        this.trainerID = trainerID;
     }
 
     @Override
-    public String getTrainerId() {
-        return trainerId;
+    public AkkamonNexus.TrainerID gettrainerID() {
+        return this.trainerID;
     }
 }

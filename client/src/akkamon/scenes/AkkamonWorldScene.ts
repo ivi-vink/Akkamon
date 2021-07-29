@@ -147,8 +147,8 @@ export function akkamonBaseWorldScene(key: string): WorldScene {
         requestBattle: function (remotePlayerName: string | string[]): void {
             this.client.sendInteractionRequest({
                 type: "battle",
-                requestingTrainerId: this.client.getSessionTrainerId()!,
-                receivingTrainerIds: Array.isArray(remotePlayerName) ? remotePlayerName : [remotePlayerName]
+                requestingtrainerID: this.client.getSessiontrainerID()!,
+                receivingtrainerIDs: Array.isArray(remotePlayerName) ? remotePlayerName : [remotePlayerName]
             });
         },
 
@@ -265,8 +265,8 @@ export function akkamonBaseWorldScene(key: string): WorldScene {
 //     requestBattle(remotePlayerName: string | string[]): void {
 //         this.client.sendInteractionRequest({
 //             type: "battle",
-//             requestingTrainerId: this.client.getSessionTrainerId()!,
-//             receivingTrainerIds: Array.isArray(remotePlayerName) ? remotePlayerName : [remotePlayerName]
+//             requestingtrainerID: this.client.getSessiontrainerID()!,
+//             receivingtrainerIDs: Array.isArray(remotePlayerName) ? remotePlayerName : [remotePlayerName]
 //         });
 //     }
 //

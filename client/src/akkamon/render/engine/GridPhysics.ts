@@ -66,9 +66,7 @@ export class GridPhysics extends AkkamonEngine {
 
     private startMoving(direction: Direction): void {
         console.log("Sending startMovingEvent");
-        this.client.send(
-            new StartMovingEvent(this.playerSprite.getScene(), direction)
-        );
+        this.client.sendStartMove(direction);
         this.playerSprite.startAnimation(direction);
         this.movementDirection = direction;
         this.updatePlayerSpriteTilePosition();
@@ -96,12 +94,7 @@ export class GridPhysics extends AkkamonEngine {
     }
 
     private updatePlayerSpriteTilePosition() {
-        this.client.send(
-            new NewTilePosEvent(
-                this.playerSprite.getScene(),
-                this.playerSprite.getTilePos()
-            )
-        );
+        this.client.sendNewTilePos(this.playerSprite.getTilePos());
         this.playerSprite.setTilePos(
             this.playerSprite
             .getTilePos()
@@ -149,12 +142,7 @@ export class GridPhysics extends AkkamonEngine {
     }
 
     private stopMoving(): void {
-        this.client.send(
-            new StopMovingEvent(
-                this.playerSprite.getScene(),
-                this.movementDirection
-            )
-        );
+        this.client.sendStopMoving(this.movementDirection);
         this.playerSprite.stopAnimation(this.movementDirection);
         this.movementDirection = Direction.NONE;
     }

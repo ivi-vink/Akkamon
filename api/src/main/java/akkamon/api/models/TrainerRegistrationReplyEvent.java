@@ -1,13 +1,12 @@
 package akkamon.api.models;
 
-import akkamon.domain.AkkamonNexus;
-
-import java.util.Map;
+import akkamon.domain.actors.AkkamonNexus;
 
 public class TrainerRegistrationReplyEvent extends Event {
-    public TrainerRegistrationReplyEvent(String sessionTrainerId) {
+
+    public TrainerRegistrationReplyEvent(AkkamonNexus.TrainerID sessiontrainerID) {
         this.type = EventType.TRAINER_REGISTRATION_REPLY;
 
-        this.trainerId = sessionTrainerId;
+        this.trainerID = sessiontrainerID;
     }
 }

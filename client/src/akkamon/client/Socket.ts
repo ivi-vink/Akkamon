@@ -7,7 +7,7 @@ import {
 
 export class Socket extends WebSocket implements AkkamonSession
 {
-    public trainerId?: string;
+    public trainerID?: {id: string, scene: string};
 
     constructor(
         url: string,

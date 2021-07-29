@@ -39,8 +39,8 @@ function delay(ms: number) {
 
 async function awaitRegistrationReplyAndStart() {
     if (!game) {
-        while (client.getSessionTrainerId() === undefined) {
-            console.log("can't start game, this trainerId is still undefined");
+        while (client.getTrainerID() === undefined) {
+            console.log("can't start game, this trainerID is still undefined");
             await delay(1000);
         }
         newGame();

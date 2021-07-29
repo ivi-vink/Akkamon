@@ -47,7 +47,7 @@ export class InteractionEngine extends AkkamonEngine {
 
                 this.answering = true;
                 this.scene.pushMenu(new InteractionRequestDialogue(this.scene, ["YES", "NO"],
-                                                                   {name: message!.trainerId,
+                                                                   {name: message!.trainerID.id,
                                                                        requestType: message!.interactionType,
                                                                    requestName: message!.requestName}
                                                                   ));
@@ -59,7 +59,7 @@ export class InteractionEngine extends AkkamonEngine {
     }
 
     push(event: IncomingInteractionRequest) {
-        // check trainerId
+        // check trainerID
         if (this.awaitingInit) {
             this.waitingForResponseOf = event.requestName;
 

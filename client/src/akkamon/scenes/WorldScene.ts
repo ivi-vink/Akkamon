@@ -40,9 +40,9 @@ export interface WorldScene extends Phaser.Scene {
 
     getPlayerPixelPosition: () => Phaser.Math.Vector2
 
-    getRemotePlayerNames: () => string[]
+    getRemotePlayerNames: () => {id: string, scene: string}[]
 
-    requestBattle: (remotePlayerData: string | string[]) => void
+    requestBattle: (remotePlayerData: {id: string, scene: string}) => void
 
     clearMenus: () => void
 
@@ -136,20 +136,26 @@ export function createWorldScene<PhaserScene extends BasePhaserScene>(scene: Pha
             return client.requestPlayerPixelPosition();
         }
 
-        getRemotePlayerNames(): Array<string> {
+        getRemotePlayerNames(): Array<{id: string, scene: string}> {
             let remotePlayerData = client.requestRemotePlayerData();
             if (remotePlayerData.size === 0) {
-                return ['Nobody Online'];
+                return [{id: 'Nobody Online', scene: ''}];
             } else {
-                return Array.from(remotePlayerData.keys());
+                let keys = remotePlayerData.keys();
+                let trainerIDs: {id: string, scene: string}[] = [];
+
+                for (let key of keys) {
+                    let trainerID: { id: string, scene: string }  = JSON.parse(key);
+                    trainerIDs.push(trainerID);
+                }
+                return trainerIDs;
             }
         }
 
-        requestBattle(remotePlayerName: string | string[]): void {
+        requestBattle(remoteTrainerID: {id: string, scene: string}): void {
             client.sendInteractionRequest({
                 type: "battle",
-                requestingTrainerId: client.getSessionTrainerId()!,
-                receivingTrainerIds: Array.isArray(remotePlayerName) ? remotePlayerName : [remotePlayerName]
+                receivingtrainerIDs: Array.isArray(remoteTrainerID) ? remoteTrainerID : [remoteTrainerID]
             });
         }
 

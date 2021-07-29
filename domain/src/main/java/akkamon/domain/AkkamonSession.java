@@ -1,9 +1,11 @@
 package akkamon.domain;
 
+import akkamon.domain.actors.AkkamonNexus;
+
 public interface AkkamonSession {
     void send(String event);
 
-    void setTrainerId(String trainerId);
+    void settrainerID(AkkamonNexus.TrainerID trainerID);
 
-    String getTrainerId();
+    AkkamonNexus.TrainerID gettrainerID();
 }

@@ -1,4 +1,4 @@
-package akkamon.domain;
+package akkamon.domain.actors;
 
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
@@ -6,10 +6,14 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
+import akkamon.domain.Direction;
+import akkamon.domain.TilePos;
 
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.Queue;
+
+import static akkamon.domain.actors.AkkamonNexus.*;
 
 public class Trainer extends AbstractBehavior<Trainer.Command> {
 
@@ -27,26 +31,25 @@ public class Trainer extends AbstractBehavior<Trainer.Command> {
 
     public static final class RespondMovementQueue {
         final long requestId;
-        final String trainerId;
+        final TrainerID trainerID;
         final Queue<Direction> value;
 
         public RespondMovementQueue(
                 long requestId,
-                String trainerId,
+                TrainerID trainerID,
                 Queue<Direction> value
         ) {
             this.requestId = requestId;
-            this.trainerId = trainerId;
+            this.trainerID = trainerID;
             this.value = value;
         }
     }
 
-    public static Behavior<Command> create(String sceneId, String trainerId) {
-        return Behaviors.setup(context -> new Trainer(context, sceneId, trainerId));
+    public static Behavior<Command> create(TrainerID trainerID) {
+        return Behaviors.setup(context -> new Trainer(context, trainerID));
     }
 
-    private String sceneId;
-    private String trainerId;
+    private TrainerID trainerID;
 
     private Queue<Direction> movementQueue = new LinkedList<>();
 
@@ -54,10 +57,9 @@ public class Trainer extends AbstractBehavior<Trainer.Command> {
 
     private Optional<TilePos> lastValidTilePos = Optional.empty();
 
-    public Trainer(ActorContext<Command> context, String sceneId, String trainerId) {
+    public Trainer(ActorContext<Command> context, TrainerID trainerID) {
         super(context);
-        this.sceneId = sceneId;
-        this.trainerId = trainerId;
+        this.trainerID = trainerID;
     }
 
     @Override
@@ -68,24 +70,24 @@ public class Trainer extends AbstractBehavior<Trainer.Command> {
                         this::onReadMovementQueue
                 )
                 .onMessage(
-                        AkkamonNexus.RequestTrainerOffline.class,
+                        RequestTrainerOffline.class,
                         this::onTrainerOffline
                 )
                 .onMessage(
-                        AkkamonNexus.RequestStartMoving.class,
+                        RequestStartMoving.class,
                         this::onStartMoving
                 )
                 .onMessage(
-                        AkkamonNexus.RequestStopMoving.class,
+                        RequestStopMoving.class,
                         this::onStopMoving)
                 .onMessage(
-                        AkkamonNexus.RequestNewTilePos.class,
+                        RequestNewTilePos.class,
                         this::onNewTilePos
                 )
                 .build();
     }
 
-    private Behavior<Command> onTrainerOffline(AkkamonNexus.RequestTrainerOffline trainerOfflineRequest) {
+    private Behavior<Command> onTrainerOffline(RequestTrainerOffline trainerOfflineRequest) {
         getContext().getLog().info("Trainer {} went offline, the actor has stopped! My supervisor should handle closing my connection!");
         return Behaviors.stopped();
     }
@@ -93,29 +95,29 @@ public class Trainer extends AbstractBehavior<Trainer.Command> {
     private Trainer onReadMovementQueue(ReadMovementQueue readTrainerPositionRequest) {
         readTrainerPositionRequest.replyTo.tell(new RespondMovementQueue(
                 readTrainerPositionRequest.requestId,
-                trainerId,
+                trainerID,
                 new LinkedList<>(movementQueue)
         ));
         this.movementQueue.clear();
         return this;
     }
 
-    private Trainer onNewTilePos(AkkamonNexus.RequestNewTilePos newTilePosRequest) {
-        // getContext().getLog().info("Trainer {} has new {}.", trainerId, newTilePosRequest.tilePos);
+    private Trainer onNewTilePos(RequestNewTilePos newTilePosRequest) {
+        // getContext().getLog().info("Trainer {} has new {}.", trainerID, newTilePosRequest.tilePos);
         if (isMoving()) {
             this.movementQueue.add(this.movementDirection);
         }
         return this;
     }
 
-    private Trainer onStopMoving(AkkamonNexus.RequestStopMoving stopMovingRequest) {
-        // getContext().getLog().info("Trainer {} stops to move {}.", trainerId, stopMovingRequest.direction);
+    private Trainer onStopMoving(RequestStopMoving stopMovingRequest) {
+        // getContext().getLog().info("Trainer {} stops to move {}.", trainerID, stopMovingRequest.direction);
         this.movementDirection = Direction.NONE;
         return this;
     }
 
-    private Trainer onStartMoving(AkkamonNexus.RequestStartMoving startMovingRequest) {
-        // getContext().getLog().info("Trainer {} starts to move {}.", trainerId, startMovingRequest.direction);
+    private Trainer onStartMoving(RequestStartMoving startMovingRequest) {
+        // getContext().getLog().info("Trainer {} starts to move {}.", trainerID, startMovingRequest.direction);
         this.movementDirection = startMovingRequest.direction;
         return this;
     }

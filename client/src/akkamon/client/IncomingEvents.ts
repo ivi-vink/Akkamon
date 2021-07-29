@@ -2,10 +2,11 @@ import { EventType, AkkamonEvent } from './EventType';
 import type { Direction } from '../render/Direction';
 
 
+type TrainerID = {id: string, scene: string}
 
 export interface IncomingEvent extends AkkamonEvent {
-    remoteMovementQueues?:{[trainerId: string]: { value: Array<Direction> }}
-    trainerId?: string
+    remoteMovementQueues?:{[trainerID: string]: { value: Array<Direction> }}
+    trainerID?: TrainerID
     requestId?: number
     requestName?: string
     interactionType?: string
@@ -17,7 +18,7 @@ export class IncomingInteractionRequest implements IncomingEvent {
 
     constructor(
         public interactionType: string,
-        public trainerId: string,
+        public trainerID: TrainerID,
         public requestName: string
     ) { }
 }
@@ -35,7 +36,7 @@ export class PlayerRegistrationReplyEvent implements IncomingEvent {
     public type: EventType = EventType.TRAINER_REGISTRATION_REPLY;
 
     constructor(
-        public trainerId: string
+        public trainerID: TrainerID
     ) { }
 }
 

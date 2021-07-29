@@ -3,11 +3,14 @@ package akkamon.domain;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.*;
+import akkamon.domain.actors.AkkamonNexus;
 
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static akkamon.domain.actors.AkkamonNexus.*;
 
 public class InteractionHandshaker extends AbstractBehavior<InteractionHandshaker.Command> {
 
@@ -21,23 +24,20 @@ public class InteractionHandshaker extends AbstractBehavior<InteractionHandshake
 
     public static class InteractionReply implements Command {
         public String requestName;
-        public String trainerId;
-        public String sceneId;
+        public TrainerID trainerID;
         public boolean value;
 
-        public InteractionReply(String requestName, String trainerId, String sceneId, boolean value) {
+        public InteractionReply(String requestName, TrainerID trainerID, boolean value) {
             this.requestName = requestName;
-            this.trainerId = trainerId;
-            this.sceneId = sceneId;
+            this.trainerID = trainerID;
             this.value = value;
         }
     }
 
     public static Behavior<Command> create(
-            String trainerId,
+            TrainerID trainerID,
             String type,
-            List<String> needingConfirmation,
-            String sceneId,
+            List<TrainerID> needingConfirmation,
             String requestName,
             ActorRef<AkkamonNexus.Command> replyTo,
             Duration timeout) {
@@ -46,10 +46,9 @@ public class InteractionHandshaker extends AbstractBehavior<InteractionHandshake
                 context -> Behaviors.withTimers(
                         timers -> new InteractionHandshaker(
                                 context,
-                                trainerId,
+                                trainerID,
                                 type,
                                 new HashSet(needingConfirmation),
-                                sceneId,
                                 requestName,
                                 replyTo,
                                 timeout,
@@ -58,20 +57,19 @@ public class InteractionHandshaker extends AbstractBehavior<InteractionHandshake
                 ));
     }
 
-    private Set<String> stillWaiting;
+    private Set<TrainerID> stillWaiting;
 
     private ActorRef<AkkamonNexus.Command> replyTo;
 
     private String requestName;
     private String type;
 
-    private Set<String> waitingToStartInteraction = new HashSet<>();
+    private Set<TrainerID> waitingToStartInteraction = new HashSet<>();
 
     public InteractionHandshaker(ActorContext<Command> context,
-                                 String trainerId,
+                                 TrainerID trainerID,
                                  String type,
-                                 Set<String> needingToShakeHands,
-                                 String sceneId,
+                                 Set<TrainerID> needingToShakeHands,
                                  String requestName,
                                  ActorRef<AkkamonNexus.Command> replyTo,
                                  Duration timeout,
@@ -85,7 +83,7 @@ public class InteractionHandshaker extends AbstractBehavior<InteractionHandshake
         this.requestName = requestName;
         this.type = type;
 
-        waitingToStartInteraction.add(trainerId);
+        waitingToStartInteraction.add(trainerID);
         stillWaiting = needingToShakeHands;
     }
 
@@ -101,7 +99,7 @@ public class InteractionHandshaker extends AbstractBehavior<InteractionHandshake
         getContext().getLog().info("Received fail instance due to timeout!");
 
         replyTo.tell(
-                new AkkamonNexus.RespondInteractionHandshaker(
+                new RespondInteractionHandshaker(
                         requestName,
                         type,
                         HandshakeResult.FAIL,
@@ -113,13 +111,15 @@ public class InteractionHandshaker extends AbstractBehavior<InteractionHandshake
 
 
     private Behavior<Command> onReply(InteractionReply r) {
-        getContext().getLog().info("received reply from {} with value {}!", r.trainerId, r.value);
-        stillWaiting.remove(r.trainerId);
-        this.waitingToStartInteraction.add(r.trainerId);
+        getContext().getLog().info("received reply from {} with value {}!", r.trainerID, r.value);
+        getContext().getLog().info(String.valueOf(stillWaiting));
+        stillWaiting.remove(r.trainerID);
+        getContext().getLog().info(String.valueOf(stillWaiting));
+        this.waitingToStartInteraction.add(r.trainerID);
         if (r.value) {
             return respondIfAllRepliesReceived();
         } else {
-            replyTo.tell(new AkkamonNexus.RespondInteractionHandshaker(
+            replyTo.tell(new RespondInteractionHandshaker(
                     requestName,
                     type,
                     HandshakeResult.FAIL,
@@ -130,8 +130,10 @@ public class InteractionHandshaker extends AbstractBehavior<InteractionHandshake
     }
 
     private Behavior<Command> respondIfAllRepliesReceived() {
+        getContext().getLog().info(String.valueOf(stillWaiting));
         if (this.stillWaiting.isEmpty()) {
-            replyTo.tell(new AkkamonNexus.RespondInteractionHandshaker(
+            getContext().getLog().info("Sending out interaction Start!");
+            replyTo.tell(new RespondInteractionHandshaker(
                     requestName,
                     type,
                     HandshakeResult.SUCCESS,

@@ -1,13 +1,13 @@
 package akkamon.api.models;
 
+import akkamon.domain.actors.AkkamonNexus;
 import akkamon.domain.Direction;
 import akkamon.domain.TilePos;
 
 public class Event {
     public EventType type;
-    public String trainerId;
+    public AkkamonNexus.TrainerID trainerID;
     public Direction direction;
-    public String sceneId;
     public TilePos tilePos;
     public Interaction interaction;
     public String requestName;

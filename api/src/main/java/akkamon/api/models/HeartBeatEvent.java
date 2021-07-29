@@ -1,13 +1,13 @@
 package akkamon.api.models;
 
-import akkamon.domain.AkkamonNexus;
+import akkamon.domain.actors.AkkamonNexus;
 
 import java.util.Map;
 
 public class HeartBeatEvent extends Event {
-    public Map<String, AkkamonNexus.MovementQueueReading> remoteMovementQueues;
+    public Map<AkkamonNexus.TrainerID, AkkamonNexus.MovementQueueReading> remoteMovementQueues;
 
-    public HeartBeatEvent(Map<String, AkkamonNexus.MovementQueueReading> remoteMovementQueues) {
+    public HeartBeatEvent(Map<AkkamonNexus.TrainerID, AkkamonNexus.MovementQueueReading> remoteMovementQueues) {
         this.type = EventType.HEART_BEAT;
         this.remoteMovementQueues = remoteMovementQueues;
     }

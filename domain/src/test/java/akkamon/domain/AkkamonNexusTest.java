@@ -3,6 +3,8 @@ package akkamon.domain;
 import akka.actor.testkit.typed.javadsl.TestKitJunitResource;
 import akka.actor.testkit.typed.javadsl.TestProbe;
 import akka.actor.typed.ActorRef;
+import akkamon.domain.actors.AkkamonNexus;
+import akkamon.domain.actors.SceneTrainerGroup;
 import org.junit.ClassRule;
 import org.junit.Test;
 

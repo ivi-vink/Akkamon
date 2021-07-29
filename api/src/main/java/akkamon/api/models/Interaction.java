@@ -1,21 +1,22 @@
 package akkamon.api.models;
 
+import akkamon.domain.actors.AkkamonNexus;
+
 import java.util.List;
 
 public class Interaction {
     public String type;
-    public String requestingTrainerId;
-    public List<String> receivingTrainerIds;
+    public String requestingtrainerID;
+    public List<AkkamonNexus.TrainerID> receivingtrainerIDs;
 
-    public Interaction(String type, String requestingTrainerId, List<String> receivingTrainerIds) {
+    public Interaction(String type, String requestingtrainerID, List<AkkamonNexus.TrainerID> receivingtrainerIDs) {
         this.type = type;
-        this.requestingTrainerId = requestingTrainerId;
-        this.receivingTrainerIds = receivingTrainerIds;
+        this.receivingtrainerIDs = receivingtrainerIDs;
     }
 
     public String toString() {
         return "interaction={\n\ttype: " + this.type + ",\n" +
-                "\trequestingTrainerId: " + this.requestingTrainerId + ",\n" +
-                "\treceivingTrainerIds: " + this.receivingTrainerIds + "\n}";
+                "\trequestingtrainerID: " + this.requestingtrainerID + ",\n" +
+                "\treceivingtrainerIDs: " + this.receivingtrainerIDs + "\n}";
     }
 }

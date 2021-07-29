@@ -3,9 +3,13 @@ package akkamon.domain;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.*;
+import akkamon.domain.actors.AkkamonNexus;
+import akkamon.domain.actors.Trainer;
 
 import java.time.Duration;
 import java.util.*;
+
+import static akkamon.domain.actors.AkkamonNexus.*;
 
 public class HeartBeatQuery extends AbstractBehavior<HeartBeatQuery.Command> {
 
@@ -26,15 +30,15 @@ public class HeartBeatQuery extends AbstractBehavior<HeartBeatQuery.Command> {
     }
 
     private static class TrainerOffline implements Command {
-        final String trainerId;
+        final TrainerID trainerID;
 
-        private TrainerOffline(String trainerId) {
-            this.trainerId = trainerId;
+        private TrainerOffline(TrainerID trainerID) {
+            this.trainerID = trainerID;
         }
     }
 
     public static Behavior<Command> create(
-            Map<String, ActorRef<Trainer.Command>> trainerIdToActor,
+            Map<TrainerID, ActorRef<Trainer.Command>> trainerIDToActor,
             long requestId,
             String sceneId,
             ActorRef<AkkamonNexus.Command> requester,
@@ -44,7 +48,7 @@ public class HeartBeatQuery extends AbstractBehavior<HeartBeatQuery.Command> {
                 context ->
                         Behaviors.withTimers(
                                 timers -> new HeartBeatQuery(
-                                        trainerIdToActor,
+                                        trainerIDToActor,
                                         requestId,
                                         sceneId,
                                         requester,
@@ -59,11 +63,11 @@ public class HeartBeatQuery extends AbstractBehavior<HeartBeatQuery.Command> {
     private final long requestId;
     private final String sceneId;
     private final ActorRef<AkkamonNexus.Command> requester;
-    private Map<String, AkkamonNexus.MovementQueueReading> repliesSoFar = new HashMap<String, AkkamonNexus.MovementQueueReading>();
-    private final Set<String> stillWaiting;
+    private Map<TrainerID, MovementQueueReading> repliesSoFar = new HashMap<>();
+    private final Set<TrainerID> stillWaiting;
 
     public HeartBeatQuery(
-            Map<String, ActorRef<Trainer.Command>> trainerIdToActor,
+            Map<TrainerID, ActorRef<Trainer.Command>> trainerIDToActor,
             long requestId,
             String sceneId,
             ActorRef<AkkamonNexus.Command> requester,
@@ -80,7 +84,7 @@ public class HeartBeatQuery extends AbstractBehavior<HeartBeatQuery.Command> {
         ActorRef<Trainer.RespondMovementQueue> respondTrainerPositionAdapter =
                 context.messageAdapter(Trainer.RespondMovementQueue.class, WrappedRespondMovementQueue::new);
 
-        for (Map.Entry<String, ActorRef<Trainer.Command>> entry : trainerIdToActor.entrySet()) {
+        for (Map.Entry<TrainerID, ActorRef<Trainer.Command>> entry : trainerIDToActor.entrySet()) {
             context.watchWith(entry.getValue(), new TrainerOffline(entry.getKey()));
             entry.getValue().tell(
                     new Trainer.ReadMovementQueue(
@@ -88,7 +92,7 @@ public class HeartBeatQuery extends AbstractBehavior<HeartBeatQuery.Command> {
                             respondTrainerPositionAdapter
                     ));
         }
-        stillWaiting = new HashSet<>(trainerIdToActor.keySet());
+        stillWaiting = new HashSet<>(trainerIDToActor.keySet());
     }
 
     @Override
@@ -99,25 +103,25 @@ public class HeartBeatQuery extends AbstractBehavior<HeartBeatQuery.Command> {
     }
 
     private Behavior<Command> onRespondMovementQueue(WrappedRespondMovementQueue r) {
-        AkkamonNexus.MovementQueueReading movementQueueRead = null;
+        MovementQueueReading movementQueueRead = null;
         if (r.response.value.size() != 0) {
-            movementQueueRead = new AkkamonNexus.MovementQueue(r.response.value);
+            movementQueueRead = new MovementQueue(r.response.value);
         } else {
             Queue<Direction> queue = new LinkedList<>();
             queue.add(Direction.NONE);
-            movementQueueRead = new AkkamonNexus.MovementQueue(queue);
+            movementQueueRead = new MovementQueue(queue);
         }
 
-        String trainerId = r.response.trainerId;
-        repliesSoFar.put(trainerId, movementQueueRead);
-        stillWaiting.remove(trainerId);
+        TrainerID trainerID = r.response.trainerID;
+        repliesSoFar.put(trainerID, movementQueueRead);
+        stillWaiting.remove(trainerID);
 
         return respondWhenAllCollected();
     }
 
     private Behavior<Command> respondWhenAllCollected() {
         if (stillWaiting.isEmpty()) {
-            requester.tell(new AkkamonNexus.RespondHeartBeatQuery(
+            requester.tell(new RespondHeartBeatQuery(
                     requestId,
                     sceneId,
                     repliesSoFar));
