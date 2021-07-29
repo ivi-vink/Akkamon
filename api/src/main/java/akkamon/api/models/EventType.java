@@ -25,6 +25,12 @@ public enum EventType {
     SOCKET_CLOSED,
 
     @SerializedName("InteractionRequestEvent")
-    INTERACTION_REQUEST
+    INTERACTION_REQUEST,
+
+    @SerializedName("InteractionReplyEvent")
+    INTERACTION_REPLY,
+
+    @SerializedName("InteractionStarting")
+    INTERACTION_START
 
 }

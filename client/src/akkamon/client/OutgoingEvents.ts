@@ -76,3 +76,14 @@ export class OutgoingInteractionRequestEvent implements InteractionEvent {
     ) { }
 }
 
+export class InteractionReplyEvent implements AkkamonEvent {
+    public type: EventType = EventType.INTERACTION_REPLY;
+
+    constructor(
+        public trainerId: string,
+        public sceneId: string,
+        public requestName: string,
+        public value: boolean
+    ) { }
+}
+

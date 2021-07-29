@@ -10,4 +10,6 @@ public class Event {
     public String sceneId;
     public TilePos tilePos;
     public Interaction interaction;
+    public String requestName;
+    public boolean value;
 }

@@ -83,6 +83,8 @@ public class MessagingEngine implements AkkamonMessageEngine {
 
     }
 
+
+
     @Override
     public void registerTrainerSessionToSceneAndTrainerIdMaps(String sceneId, AkkamonSession session) {
         System.out.println("Registering session to scene " + sceneId);
@@ -130,12 +132,45 @@ public class MessagingEngine implements AkkamonMessageEngine {
                 ));
     }
 
+    @Override
+    public void removeInteractionHandshaker(String requestName) {
+        this.pendingInteractioRequestToHandshaker.remove(requestName);
+    }
+
+    @Override
+    public void broadCastInteractionStart(String requestName, String interactionType, Set<String> waitingToStartInteraction) {
+        for (String trainerId : waitingToStartInteraction) {
+            AkkamonSession session = trainerIdToAkkamonSessions.get(trainerId);
+            session.send(gson.toJson(
+                    new InteractionStartEvent(
+                            requestName,
+                            interactionType
+                    )
+            ));
+        }
+
+    }
+
+    @Override
+    public void broadCastHandshakeFail(String requestName, Set<String> waitingToStartInteraction) {
+        System.out.println("Handshake fail not implemented yet!");
+    }
+
     void incoming(AkkamonSession session, String message) {
         Event event = gson.fromJson(message, Event.class);
+        if (event == null) {
+            System.out.println("Received non-supported message DTO.");
+            return;
+        }
         // TODO use session trainerId
         String sceneId = "DemoScene";
 
+
         switch (event.type) {
+            case INTERACTION_REPLY:
+                System.out.println("received interaction reply!");
+                sendToHandshaker(event.requestName, event.trainerId, event.sceneId, event.value);
+                break;
             case INTERACTION_REQUEST:
                 System.out.println("received interaction request");
                 System.out.println(event.interaction);
@@ -193,6 +228,15 @@ public class MessagingEngine implements AkkamonMessageEngine {
                 break;
         }
 
+    }
+
+    private void sendToHandshaker(String requestName, String trainerId, String sceneId, boolean value) {
+        ActorRef<InteractionHandshaker.Command> handshaker = pendingInteractioRequestToHandshaker.get(requestName);
+        if (handshaker != null) {
+            handshaker.tell(
+                    new InteractionHandshaker.InteractionReply(requestName, trainerId, sceneId, value)
+            );
+        }
     }
 
     private void updatePositions() {

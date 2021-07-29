@@ -11,6 +11,7 @@ export enum EventType {
     NEW_TILE_POS = "NewTilePos",
     INTERACTION_REQUEST = "InteractionRequestEvent",
     INTERACTION_REPLY = "InteractionReplyEvent",
-    INTERACTION_ABORTED = "InteractionAbortedEvent"
+    INTERACTION_ABORTED = "InteractionAbortedEvent",
+    INTERACTION_START = "InteractionStarting"
 }
 

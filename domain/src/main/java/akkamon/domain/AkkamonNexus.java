@@ -18,17 +18,20 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
 
     public static class RespondInteractionHandshaker implements Command {
         public String requestName;
-        public boolean allRepliedInTime;
+        public String interactionType;
+        public InteractionHandshaker.HandshakeResult result;
+        public Set<String> waitingToStartInteraction;
 
-        public RespondInteractionHandshaker(String requestName, boolean allRepliedInTime) {
+
+        public RespondInteractionHandshaker(String requestName,
+                                            String interactionType,
+                                            InteractionHandshaker.HandshakeResult result,
+                                            Set<String> waitingToStartInteraction) {
             this.requestName = requestName;
-            this.allRepliedInTime = allRepliedInTime;
+            this.interactionType = interactionType;
+            this.result = result;
+            this.waitingToStartInteraction = waitingToStartInteraction;
         }
-
-    }
-
-    public static class InteractionReply implements Command {
-        public String trainerId;
     }
 
     public static class RequestInteraction
@@ -260,7 +263,14 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
     }
 
     private Behavior<Command> onInteractionHandshakerResponse(RespondInteractionHandshaker r) {
+        this.messageEngine.removeInteractionHandshaker(r.requestName);
 
+        if (r.result.equals(InteractionHandshaker.HandshakeResult.SUCCESS)) {
+            messageEngine.broadCastInteractionStart(r.requestName, r.interactionType, r.waitingToStartInteraction);
+
+        } else if (r.result.equals(InteractionHandshaker.HandshakeResult.FAIL)) {
+            messageEngine.broadCastHandshakeFail(r.requestName, r.waitingToStartInteraction);
+        }
         return this;
     }
 
@@ -275,6 +285,7 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
                                 interactionRequest.trainerId,
                                 interactionRequest.type,
                                 interactionRequest.forwardTo,
+                                interactionRequest.sceneId,
                                 requestName,
                                 interactionRequest.replyTo,
                                 Duration.ofSeconds(60)

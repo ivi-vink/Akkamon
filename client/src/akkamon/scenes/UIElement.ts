@@ -1,4 +1,7 @@
 import type { WorldScene } from '../scenes/WorldScene';
+
+import { client } from '../../app';
+
 import { Direction } from '../render/Direction';
 import {
     baseQueue,
@@ -441,8 +444,16 @@ class ChallengeDialogue extends ConfirmationDialogue implements AkkamonMenu {
 
 export class InteractionRequestDialogue extends ConfirmationDialogue implements AkkamonMenu {
 
-    constructor(scene: WorldScene, options: Array<string>, dialogueData: {name: string, requestType: string}) {
+    private requestName: string;
+
+    dialogueData;
+
+    constructor(scene: WorldScene, options: Array<string>, dialogueData: {name: string, requestType: string, requestName: string}) {
         super(scene, options, dialogueData);
+        this.dialogueData = dialogueData;
+
+        this.requestName = dialogueData.requestName;
+
         this.dialogueBox!.push(
             `Do you want to ${dialogueData.requestType} with ${dialogueData.name}?`
         );
@@ -451,7 +462,13 @@ export class InteractionRequestDialogue extends ConfirmationDialogue implements 
 
     confirm() {
         if (this.buttons![this.index!].text === "YES") {
+            console.log("Sending true!");
+            this.akkamonScene.requestConfirmInteractionReply(true, this.requestName);
+            this.akkamonScene.clearMenus();
+            this.akkamonScene.pushMenu(new WaitingDialogue(this.akkamonScene, new Phaser.GameObjects.Group(this.scene), 20, `Waiting for ${this.dialogueData.requestType} to start...`));
         } else {
+            console.log("Sending false!");
+            this.akkamonScene.requestConfirmInteractionReply(false, this.requestName);
             this.destroyAndGoBack();
         }
     }
@@ -462,14 +479,17 @@ export class InteractionRequestDialogue extends ConfirmationDialogue implements 
     }
 }
 
+
 export class WaitingDialogue extends Dialogue {
+    text: string;
     waitingPrinter: any
     constructor(scene: WorldScene, group: Phaser.GameObjects.Group, depth: number, text: string) {
         super(scene, group, depth);
-        this.typewriteText(text);
+        this.text = text;
+        this.typewriteText(this.text);
         this.waitingPrinter = setInterval(() => {
             this.displayedText.text = '';
-            this.typewriteText(text);
+            this.typewriteText(this.text);
         }, 3000);
     }
 

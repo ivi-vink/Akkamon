@@ -4,6 +4,7 @@ import akka.actor.typed.ActorRef;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface AkkamonMessageEngine {
     // broadcasts position info to WebSocket Clients
@@ -17,4 +18,9 @@ public interface AkkamonMessageEngine {
 
     void trainerDisconnected(AkkamonSession session);
 
+    void removeInteractionHandshaker(String requestName);
+
+    void broadCastInteractionStart(String requestName, String interactionType, Set<String> waitingToStartInteraction);
+
+    void broadCastHandshakeFail(String requestName, Set<String> waitingToStartInteraction);
 }

@@ -13,7 +13,6 @@ import type {
     IncomingInteractionRequest
 } from './IncomingEvents';
 
-
 export class InteractionEngine extends AkkamonEngine {
 
     private scene: WorldScene;
@@ -28,21 +27,30 @@ export class InteractionEngine extends AkkamonEngine {
 
     private answering: boolean = false;
 
+    private waitingForInteractionToStart: boolean = false;
+
     constructor(scene: WorldScene) {
         super();
         this.scene = scene;
     }
 
     playerIsBusy() {
-        return this.waitingForResponseOf || this.awaitingInit || this.answering
+        return this.waitingForResponseOf || this.awaitingInit || this.answering;
     }
 
     update() {
         if (!this.requestBackLog.isEmpty()
             && !this.playerIsBusy()
             && this.scene.menus.isEmpty()) {
+
                 let message = this.requestBackLog.pop();
-                this.scene.pushMenu(new InteractionRequestDialogue(this.scene, ["YES", "NO"], {name: message!.trainerId, requestType: message!.type}));
+
+                this.answering = true;
+                this.scene.pushMenu(new InteractionRequestDialogue(this.scene, ["YES", "NO"],
+                                                                   {name: message!.trainerId,
+                                                                       requestType: message!.interactionType,
+                                                                   requestName: message!.requestName}
+                                                                  ));
         }
     }
 
@@ -54,14 +62,30 @@ export class InteractionEngine extends AkkamonEngine {
         // check trainerId
         if (this.awaitingInit) {
             this.waitingForResponseOf = event.requestName;
-            this.scene.clearMenus();
 
-            this.scene.pushMenu(new WaitingDialogue(this.scene, new Phaser.GameObjects.Group(this.scene), 20, 'Awaiting player response...'));
+            (this.scene.menus.peek()! as WaitingDialogue).text = 'Awaiting player response...';
 
             this.awaitingInit = false;
         } else {
             this.requestBackLog.push(event);
         }
+    }
+
+    setAnswering(value: boolean) {
+        this.answering = value;
+    }
+
+    setWaitingForInteractionToStart(value: boolean) {
+        this.waitingForInteractionToStart = value;
+    }
+
+    getWaitingForInteractionToStart() {
+        return this.waitingForInteractionToStart;
+    }
+
+    setWaitingDialogue(text: string) {
+        this.scene.clearMenus();
+        this.scene.pushMenu(new WaitingDialogue(this.scene, new Phaser.GameObjects.Group(this.scene), 20, text));
     }
 
 }

@@ -46,6 +46,7 @@ export interface WorldScene extends Phaser.Scene {
 
     clearMenus: () => void
 
+    requestConfirmInteractionReply: (v: boolean, requestName: string) => void
 }
 
 
@@ -159,6 +160,10 @@ export function createWorldScene<PhaserScene extends BasePhaserScene>(scene: Pha
                 console.log(this.menus.cloneData());
                 this.clearMenus();
             }
+        }
+
+        requestConfirmInteractionReply(value: boolean, requestName: string) {
+            client.sendInteractionReply(value, requestName);
         }
 
     }

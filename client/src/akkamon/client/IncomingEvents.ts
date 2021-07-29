@@ -7,6 +7,8 @@ export interface IncomingEvent extends AkkamonEvent {
     remoteMovementQueues?:{[trainerId: string]: { value: Array<Direction> }}
     trainerId?: string
     requestId?: number
+    requestName?: string
+    interactionType?: string
 }
 
 export class IncomingInteractionRequest implements IncomingEvent {

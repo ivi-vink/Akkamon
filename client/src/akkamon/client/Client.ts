@@ -38,7 +38,8 @@ import type {
 import {
     HeartBeatReplyEvent,
     Interaction,
-    OutgoingInteractionRequestEvent
+    OutgoingInteractionRequestEvent,
+    InteractionReplyEvent
 } from './OutgoingEvents';
 
 
@@ -93,6 +94,14 @@ export class Client implements AkkamonClient
                 console.log("Received an interaction request!");
                 console.log(event);
                 this.interactionEngine!.push(event as IncomingInteractionRequest);
+                break;
+            case EventType.INTERACTION_START:
+                console.log("Received interaction starting event!");
+                console.log(event);
+                if (!this.interactionEngine!.getWaitingForInteractionToStart()) {
+                    this.interactionEngine!.setWaitingForInteractionToStart(true);
+                    this.interactionEngine!.setWaitingDialogue(`Waiting for ${event.interactionType!} to start...`);
+                }
                 break;
             default:
                 console.log("ignored incoming event, doesn't match EventType interface.");
@@ -221,5 +230,17 @@ export class Client implements AkkamonClient
 
     getCurrentSceneKey() {
         return this.scene!.scene.key;
+    }
+
+    sendInteractionReply(value: boolean, requestName: string) {
+        console.log("Sending interaction reply event!");
+        this.interactionEngine!.setAnswering(false);
+        this.interactionEngine!.setWaitingForInteractionToStart(true);
+        this.send(new InteractionReplyEvent(
+            this.getSessionTrainerId()!,
+            this.getCurrentSceneKey()!,
+            requestName,
+            value
+        ));
     }
 }
