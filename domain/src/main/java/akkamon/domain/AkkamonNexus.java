@@ -15,6 +15,22 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
 
     public interface Command {}
 
+
+    public static class RespondInteractionHandshaker implements Command {
+        public String requestName;
+        public boolean allRepliedInTime;
+
+        public RespondInteractionHandshaker(String requestName, boolean allRepliedInTime) {
+            this.requestName = requestName;
+            this.allRepliedInTime = allRepliedInTime;
+        }
+
+    }
+
+    public static class InteractionReply implements Command {
+        public String trainerId;
+    }
+
     public static class RequestInteraction
             implements Command {
 
@@ -239,7 +255,13 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
                 .onMessage(RequestStopMoving.class, this::onStopMoving)
                 .onMessage(RequestNewTilePos.class, this::onNewTilePos)
                 .onMessage(RequestInteraction.class, this::onInteractionRequest)
+                .onMessage(RespondInteractionHandshaker.class, this::onInteractionHandshakerResponse)
                 .build();
+    }
+
+    private Behavior<Command> onInteractionHandshakerResponse(RespondInteractionHandshaker r) {
+
+        return this;
     }
 
     private AkkamonNexus onInteractionRequest(RequestInteraction interactionRequest) {
@@ -248,15 +270,17 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
         getContext().getLog().info("Creating interactionHandshaker of type {} from {} to {} ", interactionRequest.type, interactionRequest.trainerId, interactionRequest.forwardTo);
 
         String requestName = "interaction-handshaker-" + interactionRequest.type + "-" + interactionRequest.trainerId + "-" + interactionRequest.requestId;
-        getContext().spawn(InteractionHandshaker.create(
+
+        ActorRef<InteractionHandshaker.Command> handshaker = getContext().spawn(InteractionHandshaker.create(
                                 interactionRequest.trainerId,
+                                interactionRequest.type,
                                 interactionRequest.forwardTo,
-                                interactionRequest.requestId,
+                                requestName,
                                 interactionRequest.replyTo,
-                                Duration.ofSeconds(20)
+                                Duration.ofSeconds(60)
                         ), requestName);
 
-        messageEngine.broadCastInteractionRequestToSessionWithTrainerIds(needConfirmation, interactionRequest.type, interactionRequest.trainerId, requestName);
+        messageEngine.broadCastInteractionRequestToSessionWithTrainerIds(needConfirmation, interactionRequest.type, interactionRequest.trainerId, requestName, handshaker);
         return this;
     }
 

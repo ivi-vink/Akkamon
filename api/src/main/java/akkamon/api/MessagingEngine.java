@@ -6,6 +6,7 @@ import akkamon.api.models.*;
 import akkamon.domain.AkkamonMessageEngine;
 import akkamon.domain.AkkamonNexus;
 import akkamon.domain.AkkamonSession;
+import akkamon.domain.InteractionHandshaker;
 import com.google.gson.Gson;
 
 import java.util.*;
@@ -16,7 +17,7 @@ public class MessagingEngine implements AkkamonMessageEngine {
 
     private Map<String, Set<AkkamonSession>> sceneIdToAkkamonSessions = new HashMap<>();
     private Map<String, AkkamonSession> trainerIdToAkkamonSessions = new HashMap<>();
-    private Set<String> pendingInteractioRequestNameSet = new HashSet<>();
+    private Map<String, ActorRef<InteractionHandshaker.Command>> pendingInteractioRequestToHandshaker = new HashMap<>();
     private Gson gson = new Gson();
 
     private ActorRef<AkkamonNexus.Command> system;
@@ -65,9 +66,10 @@ public class MessagingEngine implements AkkamonMessageEngine {
     }
 
     @Override
-    public void broadCastInteractionRequestToSessionWithTrainerIds(List<String> trainerIds, String type, String trainerId, String requestName) {
+    public void broadCastInteractionRequestToSessionWithTrainerIds(List<String> trainerIds, String type, String trainerId, String requestName, ActorRef<InteractionHandshaker.Command> handshaker) {
         System.out.println("Sending interaction request " + requestName);
-        this.pendingInteractioRequestNameSet.add(requestName);
+        this.pendingInteractioRequestToHandshaker.put(requestName, handshaker);
+        trainerIds.add(trainerId);
         for (String id : trainerIds) {
             AkkamonSession session = trainerIdToAkkamonSessions.get(id);
             if (session != null) {

@@ -24,7 +24,9 @@ class MenuText extends Phaser.GameObjects.Text {
         scene.add.existing(this);
         group.add(this);
         this.setDepth(groupDepth);
+
     }
+
 }
 
 class WrappedMenuText extends MenuText {
@@ -67,6 +69,7 @@ export interface AkkamonMenu {
     destroyAndGoBack: () => void
     confirm: () => void
     destroyGroup: () => void
+    setMenuVisible: (v: boolean) => void
 }
 
 
@@ -90,6 +93,10 @@ class Menu extends Phaser.GameObjects.Image implements AkkamonMenu {
     yOffsetFromTop?: number
     xOffsetFromRight?: number
     pickerOffset?:number
+
+    setMenuVisible(value: boolean) {
+        this.group!.setVisible(value);
+    }
 
     destroyGroup() {
         this.group!.destroy(true);
@@ -297,7 +304,7 @@ class ConfirmationDialogue extends Menu implements AkkamonMenu {
     options?: Array<string>
     dialogueBox?: Dialogue
 
-    constructor(scene: WorldScene, options: Array<string>, dialogueData: {[key: string]: string}) {
+    constructor(scene: WorldScene, options: Array<string>, dialogueData: {[key: string]: string} | string) {
         super(scene, "confirmation-dialogue");
         let camera = scene.cameras.main;
         this.setDisplaySize(200, 0.83 * 200)
@@ -345,6 +352,10 @@ class Dialogue extends Phaser.GameObjects.Image implements AkkamonMenu {
             '',
             camera.width
         );
+    }
+
+    setMenuVisible(value: boolean) {
+        this.group!.setVisible(value);
     }
 
     selectButton() {
@@ -416,7 +427,7 @@ class ChallengeDialogue extends ConfirmationDialogue implements AkkamonMenu {
         if (this.buttons![this.index!].text === "YES") {
             this.akkamonScene.requestBattle(this.challengedTrainerName);
             this.akkamonScene.clearMenus();
-            this.akkamonScene.pushMenu(new WaitingDialogue(this.akkamonScene, new Phaser.GameObjects.Group(this.scene), 20));
+            this.akkamonScene.pushMenu(new WaitingDialogue(this.akkamonScene, new Phaser.GameObjects.Group(this.scene), 20, 'Awaiting request initialisation...'));
         } else {
             this.destroyAndGoBack();
         }
@@ -428,14 +439,37 @@ class ChallengeDialogue extends ConfirmationDialogue implements AkkamonMenu {
     }
 }
 
-class WaitingDialogue extends Dialogue {
+export class InteractionRequestDialogue extends ConfirmationDialogue implements AkkamonMenu {
+
+    constructor(scene: WorldScene, options: Array<string>, dialogueData: {name: string, requestType: string}) {
+        super(scene, options, dialogueData);
+        this.dialogueBox!.push(
+            `Do you want to ${dialogueData.requestType} with ${dialogueData.name}?`
+        );
+        this.dialogueBox!.displayNextDialogue();
+    }
+
+    confirm() {
+        if (this.buttons![this.index!].text === "YES") {
+        } else {
+            this.destroyAndGoBack();
+        }
+    }
+
+    destroy() {
+        this.scene.time.removeAllEvents();
+        super.destroy();
+    }
+}
+
+export class WaitingDialogue extends Dialogue {
     waitingPrinter: any
-    constructor(scene: WorldScene, group: Phaser.GameObjects.Group, depth: number) {
+    constructor(scene: WorldScene, group: Phaser.GameObjects.Group, depth: number, text: string) {
         super(scene, group, depth);
-        this.typewriteText("Waiting on reponse...");
+        this.typewriteText(text);
         this.waitingPrinter = setInterval(() => {
             this.displayedText.text = '';
-            this.typewriteText("Waiting on reponse...");
+            this.typewriteText(text);
         }, 3000);
     }
 
@@ -449,4 +483,5 @@ class WaitingDialogue extends Dialogue {
         this.scene.time.removeAllEvents();
         super.destroy();
     }
+
 }

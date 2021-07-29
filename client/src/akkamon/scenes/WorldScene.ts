@@ -17,8 +17,6 @@ export let TILE_SIZE = 32;
 
 export interface WorldScene extends Phaser.Scene {
 
-    client: typeof client;
-
     map?: Phaser.Tilemaps.Tilemap
     spawnPoint?: Phaser.Types.Tilemaps.TiledObject;
     spawnPointTilePos?: {
@@ -47,14 +45,13 @@ export interface WorldScene extends Phaser.Scene {
     requestBattle: (remotePlayerData: string | string[]) => void
 
     clearMenus: () => void
+
 }
 
 
 export function createWorldScene<PhaserScene extends BasePhaserScene>(scene: PhaserScene, sceneKey: string, mapKey: string, tileSetKey: string) {
-    return class WorldScene extends scene implements WorldScene {
+    return class WorldScene extends scene {
         map?: Phaser.Tilemaps.Tilemap;
-
-        client =  client;
 
         menus = baseStack<AkkamonMenu>();
 
@@ -90,7 +87,7 @@ export function createWorldScene<PhaserScene extends BasePhaserScene>(scene: Pha
                 );
             this.spawnPointTilePos = tilePos;
 
-            this.client.requestInitWorldScene(
+            client.requestInitWorldScene(
                 this
             );
 
@@ -104,11 +101,11 @@ export function createWorldScene<PhaserScene extends BasePhaserScene>(scene: Pha
         }
 
         menuTakesUIControl(input: Phaser.Input.InputPlugin, menu: AkkamonMenu): void {
-            this.client.setUIControls(input, menu);
+            client.setUIControls(input, menu);
         }
 
         isUsingGridControls() {
-            this.client.setGridControls();
+            client.setGridControls();
         }
 
         pushMenu(menu: AkkamonMenu) {
@@ -126,6 +123,7 @@ export function createWorldScene<PhaserScene extends BasePhaserScene>(scene: Pha
             this.popMenu();
             if (!this.menus.isEmpty()) {
                 this.menuTakesUIControl(this.input, this.menus.peek()!);
+                this.menus.peek()!.setMenuVisible(true);
             } else {
                 this.isUsingGridControls();
             }
@@ -134,11 +132,11 @@ export function createWorldScene<PhaserScene extends BasePhaserScene>(scene: Pha
         }
 
         getPlayerPixelPosition(): Phaser.Math.Vector2 {
-            return this.client.requestPlayerPixelPosition();
+            return client.requestPlayerPixelPosition();
         }
 
         getRemotePlayerNames(): Array<string> {
-            let remotePlayerData = this.client.requestRemotePlayerData();
+            let remotePlayerData = client.requestRemotePlayerData();
             if (remotePlayerData.size === 0) {
                 return ['Nobody Online'];
             } else {
@@ -147,9 +145,9 @@ export function createWorldScene<PhaserScene extends BasePhaserScene>(scene: Pha
         }
 
         requestBattle(remotePlayerName: string | string[]): void {
-            this.client.sendInteractionRequest({
+            client.sendInteractionRequest({
                 type: "battle",
-                requestingTrainerId: this.client.getSessionTrainerId()!,
+                requestingTrainerId: client.getSessionTrainerId()!,
                 receivingTrainerIds: Array.isArray(remotePlayerName) ? remotePlayerName : [remotePlayerName]
             });
         }

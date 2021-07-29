@@ -32,6 +32,7 @@ import {
 
 import type {
     IncomingEvent,
+    IncomingInteractionRequest
 } from './IncomingEvents';
 
 import {
@@ -91,7 +92,7 @@ export class Client implements AkkamonClient
             case EventType.INTERACTION_REQUEST:
                 console.log("Received an interaction request!");
                 console.log(event);
-                // this.interactionEngine!.push(event);
+                this.interactionEngine!.push(event as IncomingInteractionRequest);
                 break;
             default:
                 console.log("ignored incoming event, doesn't match EventType interface.");
@@ -116,6 +117,7 @@ export class Client implements AkkamonClient
     }
 
     setUIControls(input: Phaser.Input.InputPlugin, menu: any) {
+        console.log("setting ui controls!");
         this.controls = new UIControls(input, menu);
     }
 
@@ -201,10 +203,12 @@ export class Client implements AkkamonClient
     }
 
     sendInteractionRequest(interaction: Interaction) {
-        console.log("sent a battle request!");
+        console.log("sent an interaction request!");
         console.log(this.getCurrentSceneKey());
         console.log(JSON.stringify(interaction));
-        this.interactionEngine!.setAwaitingResponse();
+
+        this.interactionEngine!.setAwaitingInteractionRequestInitiation(true);
+
         this.send(new OutgoingInteractionRequestEvent(
             this.getCurrentSceneKey(),
             interaction
