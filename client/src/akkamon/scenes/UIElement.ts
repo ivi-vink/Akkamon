@@ -7,9 +7,10 @@ import {
     baseQueue,
     Queue
 } from '../DataWrappers';
+import type BattleScene from './BattleScene';
 
 
-class MenuText extends Phaser.GameObjects.Text {
+export class MenuText extends Phaser.GameObjects.Text {
     public static TEXT_HEIGHT: number = 16;
 
     constructor(scene: Phaser.Scene, group: Phaser.GameObjects.Group, groupDepth: number, x: number, y: number, text: string) {
@@ -56,7 +57,7 @@ class WrappedMenuText extends MenuText {
     }
 }
 
-class Picker extends Phaser.GameObjects.Image {
+export class Picker extends Phaser.GameObjects.Image {
     constructor(scene: Phaser.Scene, group: Phaser.GameObjects.Group, x: number, y: number, name: string) {
         super(scene, x, y, name);
 
@@ -76,7 +77,7 @@ export interface AkkamonMenu {
 }
 
 
-class Menu extends Phaser.GameObjects.Image implements AkkamonMenu {
+export class Menu extends Phaser.GameObjects.Image implements AkkamonMenu {
 
     akkamonScene: WorldScene
 
@@ -359,13 +360,13 @@ class ConfirmationDialogue extends Menu implements AkkamonMenu {
 
 }
 
-class Dialogue extends Phaser.GameObjects.Image implements AkkamonMenu {
+export class Dialogue extends Phaser.GameObjects.Image implements AkkamonMenu {
     public messageQueue: Queue<string>;
     public displayedText: MenuText;
-    public akkamonScene: WorldScene;
+    public akkamonScene: WorldScene | BattleScene;
     public group: Phaser.GameObjects.Group;
 
-    constructor(scene: WorldScene, group: Phaser.GameObjects.Group, depth: number) {
+    constructor(scene: WorldScene | BattleScene, group: Phaser.GameObjects.Group, depth: number) {
         let camera = scene.cameras.main;
         super(scene, camera.scrollX, camera.scrollY, "general-dialogue-box")
         this.setOrigin(0,1);

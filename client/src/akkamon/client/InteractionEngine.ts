@@ -84,7 +84,7 @@ export class InteractionEngine extends AkkamonEngine {
     }
 
     setWaitingDialogue(text: string) {
-        this.scene.clearMenus();
+        this.scene.traverseMenusBackwards();
         this.scene.pushMenu(new WaitingDialogue(this.scene, new Phaser.GameObjects.Group(this.scene), 20, text));
     }
 

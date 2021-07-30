@@ -131,6 +131,7 @@ public class InteractionHandshaker extends AbstractBehavior<InteractionHandshake
 
     private Behavior<Command> respondIfAllRepliesReceived() {
         getContext().getLog().info(String.valueOf(stillWaiting));
+
         if (this.stillWaiting.isEmpty()) {
             getContext().getLog().info("Sending out interaction Start!");
             replyTo.tell(new RespondInteractionHandshaker(

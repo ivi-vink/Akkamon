@@ -38,6 +38,13 @@ public class MessagingEngine implements AkkamonMessageEngine {
     }
 
     private void heartBeat() {
+        for (AkkamonSession session : trainerIDToAkkamonSessions.values()) {
+            session.send(
+                    gson.toJson(
+                            new HeartBeatEvent(null)
+                    )
+            );
+        }
         nexus.tell(new AkkamonNexus.RequestHeartBeat(
                 UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE,
                 nexus
@@ -168,6 +175,23 @@ public class MessagingEngine implements AkkamonMessageEngine {
     @Override
     public void broadCastHandshakeFail(String requestName, Set<AkkamonNexus.TrainerID> waitingToStartInteraction) {
         System.out.println("Handshake fail not implemented yet!");
+    }
+
+    @Override
+    public void broadCastBattleStart(Set<AkkamonNexus.TrainerID> participants) {
+        System.out.println("Sending battle start event!!");
+        for (AkkamonNexus.TrainerID trainerID : participants) {
+            AkkamonSession session = trainerIDToAkkamonSessions.get(trainerID);
+            Set<AkkamonNexus.TrainerID> withoutself = new HashSet<>(participants);
+            withoutself.remove(trainerID);
+            if (session != null) {
+                session.send(
+                        gson.toJson(
+                                new BattleInitEvent(new ArrayList<>(withoutself))
+                        )
+                );
+            }
+        }
     }
 
     void incoming(AkkamonSession session, String message) {

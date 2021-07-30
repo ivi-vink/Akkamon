@@ -30,9 +30,9 @@ public class Trainer extends AbstractBehavior<Trainer.Command> {
     }
 
     public static final class RespondMovementQueue {
-        final long requestId;
-        final TrainerID trainerID;
-        final Queue<Direction> value;
+        final public long requestId;
+        final public TrainerID trainerID;
+        final public Queue<Direction> value;
 
         public RespondMovementQueue(
                 long requestId,
@@ -57,6 +57,8 @@ public class Trainer extends AbstractBehavior<Trainer.Command> {
 
     private Optional<TilePos> lastValidTilePos = Optional.empty();
 
+    private ActorRef<AkkamonBattle.Command> battleRef;
+
     public Trainer(ActorContext<Command> context, TrainerID trainerID) {
         super(context);
         this.trainerID = trainerID;
@@ -64,6 +66,10 @@ public class Trainer extends AbstractBehavior<Trainer.Command> {
 
     @Override
     public Receive<Command> createReceive() {
+        return moving();
+    }
+
+    private Receive<Command> moving() {
         return newReceiveBuilder()
                 .onMessage(
                         ReadMovementQueue.class,
@@ -84,8 +90,25 @@ public class Trainer extends AbstractBehavior<Trainer.Command> {
                         RequestNewTilePos.class,
                         this::onNewTilePos
                 )
+                .onMessage(AkkamonNexus.BattleStart.class, this::onBattleStart)
+            .build();
+    }
+
+    private Behavior<Command> battling() {
+        return Behaviors.receive(Command.class)
+                .onMessage(ReadMovementQueue.class, this::onReadMovementQueue)
                 .build();
     }
+
+    private Behavior<Command> onBattleStart(AkkamonNexus.BattleStart battle) {
+        getContext().getLog().info("Trainer {} now has a battle ref and has battle behavior", trainerID);
+        this.battleRef = battle.ref;
+        battle.ref.tell(
+                battle
+        );
+        return battling();
+    }
+
 
     private Behavior<Command> onTrainerOffline(RequestTrainerOffline trainerOfflineRequest) {
         getContext().getLog().info("Trainer {} went offline, the actor has stopped! My supervisor should handle closing my connection!");

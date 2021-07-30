@@ -12,6 +12,8 @@ import { RemotePlayerEngine } from '../render/engine/RemotePlayerEngine';
 
 import { InteractionEngine } from './InteractionEngine';
 
+import { BattleEngine } from '../render/BattleEngine';
+
 import type { AkkamonClient } from './AkkamonClient';
 
 import type { WorldScene } from '../scenes/WorldScene';
@@ -45,6 +47,9 @@ import {
     StopMovingEvent
 } from './OutgoingEvents';
 
+import type BattleScene from '../scenes/BattleScene';
+import { BattleControls } from '../render/BattleControls';
+
 
 export class Client implements AkkamonClient
 {
@@ -53,11 +58,13 @@ export class Client implements AkkamonClient
 
     private scene?: WorldScene;
     private gridPhysics?: GridPhysics;
-    private controls?: GridControls | UIControls;
+    private controls?: GridControls | UIControls | BattleControls;
 
     private remotePlayerEngine?: RemotePlayerEngine;
 
     private interactionEngine?: InteractionEngine
+
+    private BattleEngine?: BattleEngine
 
     constructor(
         private url: string
@@ -82,7 +89,7 @@ export class Client implements AkkamonClient
         // console.log(event);
         switch (event.type) {
             case EventType.HEART_BEAT:
-                if (this.remotePlayerEngine !== undefined) {
+                if (this.remotePlayerEngine !== undefined && event.remoteMovementQueues) {
                     this.remotePlayerEngine.push(event.remoteMovementQueues!);
                 }
                 this.send(new HeartBeatReplyEvent());
@@ -107,6 +114,14 @@ export class Client implements AkkamonClient
                     this.interactionEngine!.setWaitingDialogue(`Waiting for ${event.interactionType!} to start...`);
                 }
                 break;
+            case EventType.BATTLE_INIT:
+                console.log("Received battle init");
+                if (!this.BattleEngine) {
+                    this.scene!.switchToBattleScene();
+                } else {
+                    console.log("There was already a battle engine!");
+                }
+                break;
             default:
                 console.log("ignored incoming event, doesn't match EventType interface.");
                 console.log(event.type);
@@ -127,6 +142,12 @@ export class Client implements AkkamonClient
         this.gridPhysics!.update(delta);
         this.remotePlayerEngine!.update(delta);
         this.interactionEngine!.update();
+    }
+
+    updateBattle(delta: number) {
+        console.log("updating battle");
+        this.controls!.update();
+        this.BattleEngine!.update();
     }
 
     setUIControls(input: Phaser.Input.InputPlugin, menu: any) {
@@ -208,7 +229,11 @@ export class Client implements AkkamonClient
         return this.gridPhysics!.getPlayerPixelPos();
     }
 
-    requestInitBattle() {
+    requestInitBattle(scene: BattleScene) {
+        this.BattleEngine = new BattleEngine(
+            scene
+        );
+
     }
 
     requestRemotePlayerData() {
@@ -262,5 +287,10 @@ export class Client implements AkkamonClient
             )
         );
 
+    }
+
+    setBattleControls(input: Phaser.Input.InputPlugin, menu: any) {
+        console.log("setting battle controls!");
+        this.controls! = new BattleControls(input, menu);
     }
 }

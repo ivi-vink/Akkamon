@@ -12,6 +12,7 @@ export enum EventType {
     INTERACTION_REQUEST = "InteractionRequestEvent",
     INTERACTION_REPLY = "InteractionReplyEvent",
     INTERACTION_ABORTED = "InteractionAbortedEvent",
-    INTERACTION_START = "InteractionStarting"
+    INTERACTION_START = "InteractionStarting",
+    BATTLE_INIT = "BattleInitEvent"
 }
 

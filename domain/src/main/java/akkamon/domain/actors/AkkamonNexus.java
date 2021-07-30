@@ -17,8 +17,8 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
     public interface Command {}
 
     public static class TrainerID {
-        public String id;
-        public String scene;
+        public final String id;
+        public final String scene;
 
         public TrainerID(String id, String scene) {
             this.id = id;
@@ -47,8 +47,18 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
         }
     }
 
-    public static class BattleStart implements SceneTrainerGroup.Command, Trainer.Command {
+    public static class BattleStart
+            implements Command, SceneTrainerGroup.Command, Trainer.Command, AkkamonBattle.Command {
 
+        public TrainerID trainerID;
+        public ActorRef<AkkamonBattle.Command> ref;
+        public ActorRef<AkkamonNexus.Command> replyTo;
+
+        public BattleStart(TrainerID trainerID, ActorRef<AkkamonBattle.Command> battle, ActorRef<AkkamonNexus.Command> replyTo) {
+            this.trainerID = trainerID;
+            this.ref = battle;
+            this.replyTo = replyTo;
+        }
     }
 
     public static class RespondInteractionHandshaker implements Command {
@@ -284,6 +294,7 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
                 .onMessage(RequestNewTilePos.class, this::onNewTilePos)
 
                 .onMessage(RequestInteraction.class, this::onInteractionRequest)
+
                 .onMessage(RespondInteractionHandshaker.class, this::onInteractionHandshakerResponse)
 
                 .onMessage(AkkamonBattle.BattleCreatedResponse.class, this::onBattleCreatedResponse)
@@ -292,21 +303,43 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
 
     private AkkamonNexus onBattleCreatedResponse(AkkamonBattle.BattleCreatedResponse r) {
         getContext().getLog().info("Created battle between {} and {}, they should now only be listening to battle commands!");
+        messageEngine.broadCastBattleStart(r.participants);
         return this;
     }
 
     private Behavior<Command> onInteractionHandshakerResponse(RespondInteractionHandshaker r) {
+        getContext().getLog().info("received interaction response");
         this.messageEngine.removeInteractionHandshaker(r.requestName);
+
+
+        StringBuilder battlename = new StringBuilder();
+        battlename.append("battle");
+        for (TrainerID trainerID : r.waitingToStartInteraction) {
+            battlename.append("-" + trainerID.id);
+        }
 
         if (r.result.equals(InteractionHandshaker.HandshakeResult.SUCCESS)) {
             messageEngine.broadCastInteractionStart(r.requestName, r.interactionType, r.waitingToStartInteraction);
 
             switch (r.interactionType) {
                 case "battle":
-                    getContext().spawn(AkkamonBattle.create(
+                    ActorRef<AkkamonBattle.Command> battle = getContext().spawn(AkkamonBattle.create(
+                                r.waitingToStartInteraction,
                                 getContext().getSelf()
                             ),
-                            r.requestName);
+                            battlename.toString());
+                    for (TrainerID trainerID : r.waitingToStartInteraction) {
+                        ActorRef<SceneTrainerGroup.Command> scene = sceneIdToActor.get(trainerID.scene);
+                        if (scene != null) {
+                            scene.tell(new BattleStart(
+                                    trainerID,
+                                    battle,
+                                    getContext().getSelf()
+                            ));
+                        } else {
+                            getContext().getLog().info("Ignoring battle in scene {}, it isn't mapped to a sceneTrainerActor.", trainerID.scene);
+                        }
+                    }
                     break;
             }
 

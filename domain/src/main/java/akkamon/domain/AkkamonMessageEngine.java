@@ -24,4 +24,6 @@ public interface AkkamonMessageEngine {
     void broadCastInteractionStart(String requestName, String interactionType, Set<AkkamonNexus.TrainerID> waitingToStartInteraction);
 
     void broadCastHandshakeFail(String requestName, Set<AkkamonNexus.TrainerID> waitingToStartInteraction);
+
+    void broadCastBattleStart(Set<AkkamonNexus.TrainerID> participants);
 }

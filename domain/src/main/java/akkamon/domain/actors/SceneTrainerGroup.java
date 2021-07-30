@@ -77,7 +77,24 @@ public class SceneTrainerGroup extends AbstractBehavior<SceneTrainerGroup.Comman
                         AkkamonNexus.RequestHeartBeat.class,
                         this::onHeartBeat
                 )
+                .onMessage(AkkamonNexus.BattleStart.class,
+                        this::onBattleStarting)
                 .build();
+    }
+
+    private SceneTrainerGroup onBattleStarting(AkkamonNexus.BattleStart battle) {
+        ActorRef<Trainer.Command> trainer = this.trainerIDToActor.get(battle.trainerID);
+        if (trainer != null) {
+            trainer.tell(battle);
+        } else {
+            getContext()
+                    .getLog()
+                    .warn(
+                            "Ignoring battle for trainerID {}. There is no actor mapped to it.",
+                            battle.trainerID
+                    );
+        }
+        return this;
     }
 
     private SceneTrainerGroup onWatchedTrainerOffline(TrainerOffline trainerOfflineMsg) {

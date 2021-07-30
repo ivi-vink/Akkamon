@@ -47,6 +47,8 @@ export interface WorldScene extends Phaser.Scene {
     clearMenus: () => void
 
     requestConfirmInteractionReply: (v: boolean, requestName: string) => void
+
+    switchToBattleScene: () => void
 }
 
 
@@ -172,5 +174,9 @@ export function createWorldScene<PhaserScene extends BasePhaserScene>(scene: Pha
             client.sendInteractionReply(value, requestName);
         }
 
+        switchToBattleScene() {
+            console.log(this.scene);
+            this.scene.start('BattleScene');
+        }
     }
 }
