@@ -145,7 +145,6 @@ export class Client implements AkkamonClient
     }
 
     updateBattle(delta: number) {
-        console.log("updating battle");
         this.controls!.update();
         this.BattleEngine!.update();
     }

@@ -13,7 +13,6 @@ export class BattleControls {
     }
 
     update() {
-        console.log("updating battle controls");
         if (Phaser.Input.Keyboard.JustDown(this.cursors.left)) {
             console.log("left");
             this.menu.selectButton(Direction.LEFT);
