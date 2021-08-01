@@ -1,8 +1,42 @@
 import { EventType, AkkamonEvent } from './EventType';
 import type { Direction } from '../render/Direction';
+import type { BattleEventType } from '../render/BattleEngine';
 
 
 type TrainerID = {id: string, scene: string}
+
+export type BattleEvent = {
+    id: BattleEventType
+}
+
+export type BattleMessage = {
+    eventsToPlay: BattleEvent[]
+    state: BattleState
+}
+
+export type BattleState = {
+        teams: {
+            [id: string]: {
+                activeMon: Mon,
+                team: Mon[]
+            }
+        }
+    }
+
+export type Mon = {
+    name: string,
+    stats: {
+        HP: number,
+        Attack: number,
+        Defence: number,
+        SpecialAttack: number,
+        SpecialDefence: number,
+        Speed: number,
+        accuracy: number,
+        evasion: number,
+    },
+    status: {}
+}
 
 export interface IncomingEvent extends AkkamonEvent {
     remoteMovementQueues?:{[trainerID: string]: { value: Array<Direction> }}
@@ -10,6 +44,17 @@ export interface IncomingEvent extends AkkamonEvent {
     requestId?: number
     requestName?: string
     interactionType?: string
+    participants?: string[]
+    message?: BattleMessage
+}
+
+export class BattleInitEvent implements IncomingEvent {
+    public type: EventType = EventType.BATTLE_INIT
+
+    constructor(
+        public participants: string[],
+        public message: BattleMessage
+    ) { }
 }
 
 export class IncomingInteractionRequest implements IncomingEvent {

@@ -303,7 +303,7 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
 
     private AkkamonNexus onBattleCreatedResponse(AkkamonBattle.BattleCreatedResponse r) {
         getContext().getLog().info("Created battle between {} and {}, they should now only be listening to battle commands!");
-        messageEngine.broadCastBattleStart(r.participants);
+        messageEngine.broadCastBattleStart(r);
         return this;
     }
 

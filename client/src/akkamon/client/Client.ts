@@ -34,7 +34,8 @@ import {
 
 import type {
     IncomingEvent,
-    IncomingInteractionRequest
+    IncomingInteractionRequest,
+    BattleInitEvent
 } from './IncomingEvents';
 
 import {
@@ -56,7 +57,7 @@ export class Client implements AkkamonClient
 
     private session: AkkamonSession;
 
-    private scene?: WorldScene;
+    private scene?: WorldScene | BattleScene;
     private gridPhysics?: GridPhysics;
     private controls?: GridControls | UIControls | BattleControls;
 
@@ -116,8 +117,10 @@ export class Client implements AkkamonClient
                 break;
             case EventType.BATTLE_INIT:
                 console.log("Received battle init");
+                console.log(event);
                 if (!this.BattleEngine) {
-                    this.scene!.switchToBattleScene();
+                    this.BattleEngine = new BattleEngine(event.message!);
+                    (this.scene! as WorldScene).switchToBattleScene();
                 } else {
                     console.log("There was already a battle engine!");
                 }
@@ -158,7 +161,9 @@ export class Client implements AkkamonClient
         function delay(ms: number) { return new Promise( resolve => setTimeout(resolve, ms) ); }
         await delay(100);
         console.log('setting grid control');
-        this.controls = new GridControls(this.scene!.input, this.gridPhysics!);
+        if (!this.BattleEngine) {
+            this.controls = new GridControls(this.scene!.input, this.gridPhysics!);
+        }
     }
 
     requestInitWorldScene(
@@ -224,15 +229,21 @@ export class Client implements AkkamonClient
 
     }
 
+    pushUIEvent(event: () => void) {
+        this.BattleEngine!.pushUIEvent(event)
+    }
+
     requestPlayerPixelPosition() {
         return this.gridPhysics!.getPlayerPixelPos();
     }
 
-    requestInitBattle(scene: BattleScene) {
-        this.BattleEngine = new BattleEngine(
-            scene
-        );
+    setScene(scene: BattleScene | WorldScene) {
+        this.scene = scene;
+    }
 
+    battleEngineSceneRegister(scene: BattleScene) {
+        this.BattleEngine!.scene = scene;
+        this.setScene(scene);
     }
 
     requestRemotePlayerData() {

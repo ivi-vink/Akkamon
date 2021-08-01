@@ -35,7 +35,7 @@ function createBootScene<PhaserScene extends BasePhaserScene>(base: PhaserScene,
 
         create(): void {
             this.scene
-            .launch('BattleScene')
+            .launch('DemoScene')
             .remove()
         }
     }

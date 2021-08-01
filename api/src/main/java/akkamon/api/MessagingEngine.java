@@ -4,6 +4,7 @@ import akka.actor.typed.ActorRef;
 import akka.actor.typed.ActorSystem;
 import akkamon.api.models.*;
 import akkamon.domain.AkkamonMessageEngine;
+import akkamon.domain.actors.AkkamonBattle;
 import akkamon.domain.actors.AkkamonNexus;
 import akkamon.domain.AkkamonSession;
 import akkamon.domain.InteractionHandshaker;
@@ -178,16 +179,19 @@ public class MessagingEngine implements AkkamonMessageEngine {
     }
 
     @Override
-    public void broadCastBattleStart(Set<AkkamonNexus.TrainerID> participants) {
+    public void broadCastBattleStart(AkkamonBattle.BattleCreatedResponse response) {
         System.out.println("Sending battle start event!!");
-        for (AkkamonNexus.TrainerID trainerID : participants) {
+        for (AkkamonNexus.TrainerID trainerID : response.participants) {
             AkkamonSession session = trainerIDToAkkamonSessions.get(trainerID);
-            Set<AkkamonNexus.TrainerID> withoutself = new HashSet<>(participants);
+            Set<AkkamonNexus.TrainerID> withoutself = new HashSet<>(response.participants);
             withoutself.remove(trainerID);
             if (session != null) {
                 session.send(
                         gson.toJson(
-                                new BattleInitEvent(new ArrayList<>(withoutself))
+                                new BattleInitEvent(
+                                        new ArrayList<>(withoutself),
+                                        response.initState.get(trainerID)
+                                )
                         )
                 );
             }

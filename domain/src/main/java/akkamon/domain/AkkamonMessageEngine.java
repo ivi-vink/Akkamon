@@ -1,6 +1,7 @@
 package akkamon.domain;
 
 import akka.actor.typed.ActorRef;
+import akkamon.domain.actors.AkkamonBattle;
 import akkamon.domain.actors.AkkamonNexus;
 
 import java.util.List;
@@ -25,5 +26,5 @@ public interface AkkamonMessageEngine {
 
     void broadCastHandshakeFail(String requestName, Set<AkkamonNexus.TrainerID> waitingToStartInteraction);
 
-    void broadCastBattleStart(Set<AkkamonNexus.TrainerID> participants);
+    void broadCastBattleStart(AkkamonBattle.BattleCreatedResponse response);
 }

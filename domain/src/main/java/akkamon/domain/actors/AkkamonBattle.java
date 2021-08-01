@@ -6,19 +6,27 @@ import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
+import akkamon.domain.model.battle.BattleEngine;
+import akkamon.domain.model.battle.BattleMessage;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class AkkamonBattle extends AbstractBehavior<AkkamonBattle.Command> {
+
+    private BattleEngine engine;
 
     public interface Command { }
 
     public static class BattleCreatedResponse implements AkkamonNexus.Command {
         public Set<AkkamonNexus.TrainerID> participants;
+        public Map<AkkamonNexus.TrainerID, BattleMessage> initState;
 
-        public BattleCreatedResponse(Set<AkkamonNexus.TrainerID> participants) {
+        public BattleCreatedResponse(Set<AkkamonNexus.TrainerID> participants,
+                                     Map<AkkamonNexus.TrainerID, BattleMessage> initialisedState) {
             this.participants = participants;
+            this.initState = initialisedState;
         }
 
     }
@@ -71,8 +79,12 @@ public class AkkamonBattle extends AbstractBehavior<AkkamonBattle.Command> {
         getContext().getLog().info(String.valueOf(needLink));
         if (needLink.isEmpty()) {
             getContext().getLog().info("Sending Battle Created Response!");
+            this.engine = new BattleEngine(participants);
             replyTo.tell(
-                    new BattleCreatedResponse(participants)
+                    new BattleCreatedResponse(
+                            participants,
+                            engine.initialise()
+                            )
             );
             return inProgress();
         } else {

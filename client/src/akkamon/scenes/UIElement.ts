@@ -435,17 +435,33 @@ export class Dialogue extends Phaser.GameObjects.Image implements AkkamonMenu {
         }
     }
 
-    typewriteText(text: string) {
+    typewriteText(text: string, uiEventCallback?: () => void) {
             const length = text.length
             let i = 0
-            this.scene.time.addEvent({
-                callback: () => {
-                    this.displayedText.text += text[i]
-                    ++i
-                },
-                repeat: length - 1,
-                delay: 20
-            })
+            if (uiEventCallback) {
+                let timeEvent = this.scene.time.addEvent({
+                    callback: () => {
+                        this.displayedText.text += text[i]
+                        ++i
+                        if (i === length - 1) {
+                            uiEventCallback();
+                        }
+                    },
+                    repeat: length - 1,
+                    delay: 20
+                })
+                return timeEvent;
+            } else {
+                let timeEvent = this.scene.time.addEvent({
+                    callback: () => {
+                        this.displayedText.text += text[i]
+                        ++i
+                    },
+                    repeat: length - 1,
+                    delay: 20
+                })
+                return timeEvent;
+            }
         }
 
 }
