@@ -1,3 +1,4 @@
+import type { Mon, Stat } from "../client/IncomingEvents";
 import { baseQueue, Queue } from "../DataWrappers";
 import type BattleScene from "../scenes/BattleScene";
 import { AkkamonMenu, Dialogue, MenuText, Picker } from "../scenes/UIElement";
@@ -38,10 +39,11 @@ export class BattleDialogue extends Dialogue {
             this.confirmNextBehavior();
         } else {
             console.log("currentlyWriting removing timed printer!");
+            this.timeEvent!.destroy();
             this.timeEvent!.remove();
+            this.timeCallback!();
             this.displayedText.text = this.currentlyWriting!;
             this.currentlyWriting = undefined;
-            this.timeCallback!();
         }
     }
 
@@ -55,33 +57,44 @@ export class BattleDialogue extends Dialogue {
             this.endBehaviour();
         } else {
             console.log("Pushing ui trigger to client update handling!");
-            let trigger = () => {
-                    console.log("The trigger is fired!");
-                    this.playNextEvent();
-                }
-            console.log(trigger);
-
-            // this.scene!.pushMen this.playNextEvent();
-            this.battleScene!.pushUIEvent(
-                trigger
-            );
-
+            this.pushTriggerWhenNotBusy(() => { this.playNextEvent(); });
         }
+    }
+
+    pushTriggerWhenNotBusy(trigger: () => void) {
+        // let trigger = () => {
+        //     console.log("The trigger is fired!");
+        //     callback();
+        // }
+        // console.log(trigger);
+
+        // this.scene!.pushMen this.playNextEvent();
+        this.battleScene!.pushUIEvent(
+            trigger
+        );
     }
 
     pushEvents(events: DialogueUIEvent[], endBehaviour: () => void) {
         this.endBehaviour = endBehaviour;
         this.eventQueue.pushArray(events);
-        this.playNextEvent();
+        this.pushTriggerWhenNotBusy(() => { this.playNextEvent(); } );
     }
 
     playNextEvent() {
+        this.battleScene.busy = true;
         this.displayedText.text = '';
         if (!this.eventQueue.isEmpty()) {
             let uiEvent = this.eventQueue.pop()!;
-            this.timeEvent = this.typewriteText(uiEvent.dialogue, uiEvent.callback);
+            console.log("Playing event now:");
+            console.log(uiEvent);
+            this.timeEvent = this.typewriteText(uiEvent.dialogue, uiEvent.callback, () => {this.currentlyWriting = undefined;});
             this.timeCallback = uiEvent.callback;
+            this.currentlyWriting = uiEvent.dialogue;
         }
+    }
+
+    clearText() {
+        this.displayedText.text = '';
     }
 
 }
@@ -118,7 +131,7 @@ export class BattleOptions extends Phaser.GameObjects.Image implements AkkamonMe
 
         this.paddingX = 120;
         this.paddingY = 60;
-        this.buttonSpacing = 30;
+        this.buttonSpacing = 45;
 
         this.battleScene = scene;
         this.group = new Phaser.GameObjects.Group(scene);
@@ -284,4 +297,193 @@ export class BattleOptions extends Phaser.GameObjects.Image implements AkkamonMe
 
     setMenuVisible() {
     }
+}
+
+class HPBar extends Phaser.GameObjects.Rectangle {
+    constructor(
+        scene: BattleScene,
+                group: Phaser.GameObjects.Group,
+                groupDepth: number,
+                pos: {x: number, y: number},
+                size: {width: number, height: number},
+                ori: {x: number, y: number},
+    ) {
+        super(scene, pos.x, pos.y, size.width, size.height, 0x00ff00);
+        this.setOrigin(ori.x, ori.y);
+        scene.add.existing(this);
+        group.add(this);
+        this.setDepth(groupDepth);
+    }
+
+    setHP(hp: Stat) {
+    }
+}
+
+export class MonInterface extends Phaser.GameObjects.Image {
+
+    battleScene: BattleScene;
+    group: Phaser.GameObjects.Group;
+    groupDepth: number;
+
+    mon: Mon
+
+    monName?: MenuText;
+    level?: MenuText;
+
+    hpBar?: HPBar;
+    baseHP?: MenuText;
+    effectiveHP?: MenuText;
+
+    constructor(
+        scene: BattleScene,
+                mon: Mon,
+                imageKey: string,
+                pos: {x: number, y: number},
+                ori: {x: number, y: number},
+                aspect: number
+    ) {
+        super(
+            scene,
+            pos.x,pos.y,
+            imageKey
+        );
+        let width = scene.cameras.main.displayWidth / 2.2;
+        this.setDisplaySize(width, aspect * width);
+        this.setOrigin(ori.x, ori.y);
+        scene.add.existing(this);
+        this.group = new Phaser.GameObjects.Group(scene);
+        this.groupDepth = 10;
+        this.group.setDepth(this.groupDepth);
+        this.battleScene = scene;
+
+        this.mon = mon;
+    }
+
+}
+
+export class PlayerInterface extends MonInterface {
+    constructor(scene: BattleScene,
+                mon: Mon,
+                imageKey: string,
+                pos: {x: number, y: number},
+                ori: {x: number, y: number},
+                aspect: number) {
+                    super(scene, mon, imageKey, pos, ori, aspect);
+                    this.setMonName(mon.name);
+                    this.setLevel(mon.stats.level);
+                    this.setHP(mon.stats.HP);
+                    this.setSprite(mon.name);
+    }
+
+    setSprite(name: string) {
+        console.log("Setting back sprite for " + name);
+        let image = this.scene.add.image(this.x - this.displayWidth - 200, this.y, name.toLowerCase() + "-back")
+        .setDisplaySize(200,200)
+        .setOrigin(0.5, 0.5)
+
+        this.group.add(image);
+    }
+
+    setMonName(name: string) {
+        this.monName = new MenuText(
+            this.battleScene,
+            this.group,
+            this.groupDepth,
+            this.x - this.displayWidth + 20, this.y - this.displayHeight / 2 - 20,
+            name
+        );
+    }
+
+    setLevel(level: number) {
+        this.level = new MenuText(
+            this.battleScene,
+            this.group,
+            this.groupDepth,
+            this.x - this.displayWidth * (1 - 490 / 790), this.y - this.displayHeight / 2,
+            level.toString()
+        );
+    }
+
+    setHP(hp: Stat) {
+        this.baseHP = new MenuText(
+            this.battleScene,
+            this.group,
+            this.groupDepth,
+            this.x - this.displayWidth * (1 - 500 / 790), this.y + this.displayHeight * ((220 - 178) / 314),
+            hp.base.toString()
+        );
+
+        this.effectiveHP = new MenuText(
+            this.battleScene,
+            this.group,
+            this.groupDepth,
+            this.x - this.displayWidth * (1 - 320 / 790), this.y + this.displayHeight * ((220 - 178) / 314),
+            hp.base.toString()
+        );
+
+        this.hpBar = new HPBar(
+            this.battleScene,
+            this.group,
+            this.groupDepth,
+            {x: this.x - this.displayWidth * (1 - 245 / 790), y: this.y - this.displayHeight / 2 * (103 / 314)},
+            {width: this.displayWidth * ((731 - 237) / 790), height: this.displayHeight * ((129 - 105) / 314)},
+            {x: 0, y: 0}
+        );
+    }
+}
+
+export class OpponentInterface extends MonInterface {
+    constructor(scene: BattleScene,
+                mon: Mon,
+                imageKey: string,
+                pos: {x: number, y: number},
+                ori: {x: number, y: number},
+                aspect: number) {
+                    super(scene, mon, imageKey, pos, ori, aspect);
+                    this.setMonName(mon.name);
+                    this.setLevel(mon.stats.level);
+                    this.setHP(mon.stats.HP);
+                    this.setSprite(mon.name);
+    }
+
+    setSprite(name: string) {
+        console.log("Setting front sprite for " + name);
+        let image = this.scene.add.image(this.x + this.displayWidth + 200, this.y + this.displayHeight / 2 + 60, name.toLowerCase() + "-front")
+        .setDisplaySize(200,200)
+        .setOrigin(0.5, 0.5)
+
+        this.group.add(image);
+    }
+
+    setMonName(name: string) {
+        this.monName = new MenuText(
+            this.battleScene,
+            this.group,
+            this.groupDepth,
+            this.x + 10, this.y - 20,
+            name
+        );
+    }
+
+    setLevel(level: number) {
+        this.level = new MenuText(
+            this.battleScene,
+            this.group,
+            this.groupDepth,
+            this.x + this.displayWidth * (289 / 788), this.y + this.displayHeight * (24 / 223) - 10,
+            level.toString()
+        );
+    }
+
+    setHP(hp: Stat) {
+        this.hpBar = new HPBar(
+            this.battleScene,
+            this.group,
+            this.groupDepth,
+            {x: this.x + this.displayWidth * (217 / 788), y: this.y + this.displayHeight * (106 / 223)},
+            {width: this.displayWidth * ((705.14 - 215.66) / 788), height: this.displayHeight * ((130.5 - 104.2) / 223)},
+            {x: 0, y: 0}
+        );
+    }
+
 }

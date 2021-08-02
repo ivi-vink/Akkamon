@@ -9,6 +9,13 @@ import {
 
 import { client } from '../../app';
 
+function delay(ms: number) {
+    return new Promise(resolve => {
+        setTimeout(resolve, ms);
+    });
+}
+
+
 export enum BattleEventType {
     INTRODUCTION = "INTRODUCTION"
 }
@@ -38,12 +45,19 @@ export class BattleEngine extends AkkamonEngine {
 
     private uiEventTriggers = baseQueue<() => void>();
 
+    private playerName: string
+    private opponentName: string
+
     constructor(
         message: BattleMessage,
     ) {
         super();
         this.state = message.state;
         this.eventsToPlay.pushArray(message.eventsToPlay);
+
+        this.playerName = client.getTrainerID()!.id;
+        this.opponentName = this.getOpponentName();
+
     }
 
     getOpponentName(): string {
@@ -78,20 +92,35 @@ export class BattleEngine extends AkkamonEngine {
     [BattleEventType.INTRODUCTION](eventToPlay: BattleEvent) {
         let scene = this.scene!;
 
-        let opponentName = this.getOpponentName();
-
         // scene.showPlayerSprites();
 
         scene.pushEvents(
-            [
-            new DialogueUIEvent(opponentName + " wants to fight!", () => {scene.busy = false;}),
-            new DialogueUIEvent(opponentName + " sent out " + this.state.teams[opponentName].activeMon.name + "!", () => {scene.busy = false;})
-            ],
-        () => {
-            scene.pushMenu(new BattleOptions(
-                scene
-            ));
-        });
+                         [
+                             new DialogueUIEvent(this.opponentName + " wants to fight!", async () => {
+                                 scene.removePlayerSprites();
+                                 scene.busy = false;
+                             }),
+                             new DialogueUIEvent(this.opponentName + " sent out " + this.state.teams[this.opponentName].activeMon.name + "!", async () => {
+                                 scene.showOpponentMonInterface(this.opponentName, this.state.teams[this.opponentName].activeMon);
+                                 scene.busy = false;
+                             }),
+                             new DialogueUIEvent("Go! " + this.state.teams[this.playerName].activeMon.name + "!", async () => {
+                                 scene.showPlayerMonInterface(this.playerName, this.state.teams[this.playerName].activeMon);
+                                 scene.busy = false;
+                             }),
+                         ],
+                         () => {
+                             scene.clearDialogue();
+                             scene.pushMenu(new BattleOptions(
+                                                              scene
+                                                             ));
+                         },
+                         new InstantUIEvent(async () => {
+                             scene.showPlayerSpritesAndBalls();
+                             await delay(1000);
+                             scene.busy = false;
+                         })
+        );
 
 
     }

@@ -31,6 +31,10 @@ function createBootScene<PhaserScene extends BasePhaserScene>(base: PhaserScene,
 
             this.load.pack("general-interface", "assets/images/general-ui.json")
             this.load.pack("battle-interface", "assets/images/battle-ui.json")
+
+            this.load.image("playerBack", "assets/pokemon/playerBack.png")
+            this.load.image("opponentFront", "assets/pokemon/opponentFront.png")
+
         }
 
         create(): void {

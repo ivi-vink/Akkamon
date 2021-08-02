@@ -172,6 +172,10 @@ export class Client implements AkkamonClient
 
         this.scene = scene;
 
+        if (this.BattleEngine) {
+            this.BattleEngine = undefined;
+        }
+
         let playerSprite = new PlayerSprite({
             scene: scene,
             tilePos: new Phaser.Math.Vector2(scene.spawnPointTilePos!),

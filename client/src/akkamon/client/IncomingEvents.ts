@@ -23,17 +23,23 @@ export type BattleState = {
         }
     }
 
+export type Stat = {
+    base: number,
+    effective: number
+}
+
 export type Mon = {
     name: string,
     stats: {
-        HP: number,
-        Attack: number,
-        Defence: number,
-        SpecialAttack: number,
-        SpecialDefence: number,
-        Speed: number,
-        accuracy: number,
-        evasion: number,
+        level: number,
+        HP: Stat,
+        Attack: Stat,
+        Defence: Stat,
+        SpecialAttack: Stat,
+        SpecialDefence: Stat,
+        Speed: Stat,
+        accuracy: Stat,
+        evasion: Stat,
     },
     status: {}
 }

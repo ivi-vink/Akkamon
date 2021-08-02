@@ -435,20 +435,21 @@ export class Dialogue extends Phaser.GameObjects.Image implements AkkamonMenu {
         }
     }
 
-    typewriteText(text: string, uiEventCallback?: () => void) {
+    typewriteText(text: string, uiEventCallback?: () => void, endDialogueCallback?: () => void) {
             const length = text.length
             let i = 0
-            if (uiEventCallback) {
+            if (uiEventCallback && endDialogueCallback) {
                 let timeEvent = this.scene.time.addEvent({
                     callback: () => {
                         this.displayedText.text += text[i]
                         ++i
                         if (i === length - 1) {
                             uiEventCallback();
+                            endDialogueCallback();
                         }
                     },
                     repeat: length - 1,
-                    delay: 20
+                    delay: 50
                 })
                 return timeEvent;
             } else {
@@ -458,7 +459,7 @@ export class Dialogue extends Phaser.GameObjects.Image implements AkkamonMenu {
                         ++i
                     },
                     repeat: length - 1,
-                    delay: 20
+                    delay: 50
                 })
                 return timeEvent;
             }
