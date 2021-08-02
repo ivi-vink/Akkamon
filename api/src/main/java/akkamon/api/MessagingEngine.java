@@ -133,8 +133,8 @@ public class MessagingEngine implements AkkamonMessageEngine {
     }
 
     @Override
-    public void removeTrainerSessionFromScene(AkkamonNexus.TrainerID sceneId, AkkamonSession session) {
-        this.sceneIdToAkkamonSessions.get(sceneId).remove(session);
+    public void removeTrainerSessionFromScene(AkkamonNexus.TrainerID trainerID, AkkamonSession session) {
+        this.sceneIdToAkkamonSessions.get(trainerID.scene).remove(session);
     }
 
     @Override
@@ -199,7 +199,6 @@ public class MessagingEngine implements AkkamonMessageEngine {
     }
 
     void incoming(AkkamonSession session, String message) {
-        System.out.println(message);
         Event event = gson.fromJson(message, Event.class);
         if (event == null) {
             System.out.println("Received non-supported message DTO.");
@@ -212,6 +211,7 @@ public class MessagingEngine implements AkkamonMessageEngine {
         switch (event.type) {
             case INTERACTION_REPLY:
                 System.out.println("received interaction reply!");
+                System.out.println(message);
                 sendToHandshaker(event.requestName, event.trainerID, event.value);
                 break;
             case INTERACTION_REQUEST:
@@ -226,7 +226,6 @@ public class MessagingEngine implements AkkamonMessageEngine {
                 ));
                 break;
             case START_MOVING:
-                System.out.println(message);
                 nexus.tell(new AkkamonNexus.RequestStartMoving(
                         UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE,
                         event.trainerID,

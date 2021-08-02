@@ -12,4 +12,5 @@ public class Event {
     public Interaction interaction;
     public String requestName;
     public boolean value;
+    public BattleRequestBody battleRequestBody;
 }

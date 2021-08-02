@@ -10,10 +10,6 @@ public class SwordsDance extends Mon.Move {
         super(name, type, category, PP, power, accuracy);
     }
 
-    @Override
-    public void startTurn() {
-
-    }
 
     @Override
     public void fight() {
@@ -36,7 +32,7 @@ public class SwordsDance extends Mon.Move {
     }
 
     @Override
-    public void endTurn() {
+    public void switchIn() {
 
     }
 }

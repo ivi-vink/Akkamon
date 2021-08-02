@@ -5,6 +5,12 @@ import { AkkamonMenu, Dialogue, MenuText, Picker } from "../scenes/UIElement";
 import type { DialogueUIEvent } from "./BattleEngine";
 import { Direction } from "./Direction";
 
+function delay(ms: number) {
+    return new Promise(resolve => {
+        setTimeout(resolve, ms);
+    });
+}
+
 export class BattleDialogue extends Dialogue {
     battleScene: BattleScene
     endBehaviour: () => void;
@@ -14,6 +20,7 @@ export class BattleDialogue extends Dialogue {
     timeEvent?: Phaser.Time.TimerEvent;
     timeCallback?: () => void
 
+    waitingPrinter?: Phaser.Time.TimerEvent;
 
     constructor(scene: BattleScene, group: Phaser.GameObjects.Group, depth: number) {
         super(scene, group, depth)
@@ -97,6 +104,23 @@ export class BattleDialogue extends Dialogue {
         this.displayedText.text = '';
     }
 
+    async waitUntilBattleEvent() {
+        await delay(1000);
+        this.displayedText.text = '';
+        let callback = () => {this.waitUntilBattleEvent();}
+
+        let scene = this.battleScene;
+
+        this.typewriteText("Waiting until next battle event...", () => {
+            if (scene.isBusy()) {
+                console.log("Printing wait message again!");
+                callback();
+            } else {
+                console.log("Not printing wait message again, scene not busy?!");
+                this.displayedText.text = '';
+            }
+        }, () => {});
+    }
 }
 
 enum BattleOptionsButtons {
@@ -483,12 +507,16 @@ export class MovesOptions extends Phaser.GameObjects.Image implements AkkamonMen
     }
 
     [MoveSlot.FIRST]() {
+        this.battleScene.makeFightBattleRequest(this.mon.moves[MoveSlot.FIRST]);
     }
     [MoveSlot.SECOND]() {
+        this.battleScene.makeFightBattleRequest(this.mon.moves[MoveSlot.SECOND]);
     }
     [MoveSlot.THIRD]() {
+        this.battleScene.makeFightBattleRequest(this.mon.moves[MoveSlot.THIRD]);
     }
     [MoveSlot.FOURTH]() {
+        this.battleScene.makeFightBattleRequest(this.mon.moves[MoveSlot.FOURTH]);
     }
 
     setButtons(mon: Mon) {

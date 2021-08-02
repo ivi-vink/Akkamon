@@ -1,5 +1,6 @@
 import { client } from '../../app';
-import type { Mon } from '../client/IncomingEvents';
+import type { Mon, Move } from '../client/IncomingEvents';
+import { OutgoingBattleRequest, RequestBattleAction } from '../client/OutgoingEvents';
 import { baseStack, Queue, queueFromArray } from '../DataWrappers';
 import type { BasePhaserScene, GConstructor } from '../PhaserTypes';
 import type { BattleUIEvent, DialogueUIEvent, InstantUIEvent } from '../render/BattleEngine';
@@ -153,5 +154,43 @@ export default class BattleScene extends Phaser.Scene {
 
     getActiveMon(): Mon {
         return client.getActiveMon();
+    }
+
+    clearMenus() {
+        if (this.menus.size() > 0) {
+            this.menus.pop()!.destroyGroup();
+            console.log("stack while clearing menus:");
+            console.log(this.menus.cloneData());
+            this.clearMenus();
+        }
+    }
+
+    makeFightBattleRequest(move: Move) {
+        console.log("Making fight battle request:");
+        console.log(move);
+        this.clearMenus();
+        client.setUIControls(this.input, this.dialogueBox!);
+        this.setWaitingUntilBattleEvent();
+        client.makeBattleRequest(
+            {
+                requestAction: RequestBattleAction,
+                move: move
+            }
+        );
+    }
+
+    setWaitingUntilBattleEvent() {
+        console.log("Start waiting until next event");
+        this.busy = true;
+        this.dialogueBox!.waitUntilBattleEvent();
+    }
+
+    stopWaitingOnEvent() {
+        console.log("stop waiting on event!");
+        this.busy = false;
+        if (this.dialogueBox!.waitingPrinter) {
+            this.dialogueBox!.waitingPrinter.destroy();
+            this.dialogueBox!.waitingPrinter.remove();
+        }
     }
 }

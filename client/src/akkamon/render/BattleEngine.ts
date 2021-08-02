@@ -72,8 +72,9 @@ export class BattleEngine extends AkkamonEngine {
 
     update() {
         if (this.scene && !this.eventsToPlay.isEmpty()) {
+            console.log("Playing battle event!");
             console.log(this.eventsToPlay.peek()!);
-            console.log(BattleEventType.INTRODUCTION);
+            this.scene.stopWaitingOnEvent();
             let eventToPlay = this.eventsToPlay.pop()!;
             this[eventToPlay.id](eventToPlay)
         }

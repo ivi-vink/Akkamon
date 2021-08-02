@@ -5,11 +5,6 @@ import akkamon.domain.model.akkamon.Mon;
 public class Immunity extends Mon.Ability {
 
     @Override
-    public void startTurn() {
-
-    }
-
-    @Override
     public void fight() {
 
     }
@@ -30,7 +25,7 @@ public class Immunity extends Mon.Ability {
     }
 
     @Override
-    public void endTurn() {
+    public void switchIn() {
 
     }
 }

@@ -46,7 +46,10 @@ import {
     InteractionReplyEvent,
     StartMovingEvent,
     NewTilePosEvent,
-    StopMovingEvent
+    StopMovingEvent,
+    BattleRequestBody,
+    RequestBattleAction,
+    OutgoingBattleRequest
 } from './OutgoingEvents';
 
 import type BattleScene from '../scenes/BattleScene';
@@ -311,5 +314,14 @@ export class Client implements AkkamonClient
 
     getActiveMon(): Mon {
         return this.BattleEngine!.getActiveMon();
+    }
+
+    makeBattleRequest(body: BattleRequestBody) {
+        this.send(
+            new OutgoingBattleRequest(
+                this.getTrainerID()!,
+                body
+            )
+        );
     }
 }

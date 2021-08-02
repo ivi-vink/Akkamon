@@ -11,11 +11,6 @@ public class Agility extends Mon.Move {
     }
 
     @Override
-    public void startTurn() {
-
-    }
-
-    @Override
     public void fight() {
 
     }
@@ -36,7 +31,7 @@ public class Agility extends Mon.Move {
     }
 
     @Override
-    public void endTurn() {
+    public void switchIn() {
 
     }
 }

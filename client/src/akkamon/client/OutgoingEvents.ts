@@ -1,6 +1,7 @@
 import type { Direction } from '../render/Direction';
 
 import { EventType, AkkamonEvent } from './EventType';
+import type { Move } from './IncomingEvents';
 
 export type TrainerID = {
     id: string,
@@ -24,9 +25,24 @@ export interface InteractionEvent extends OutgoingEvent {
     interaction: Interaction
 }
 
+export enum RequestBattleAction {
+    FIGHT = "FIGHT",
+}
+
+export type BattleRequestBody = {
+    requestAction: RequestBattleAction
+    move?: Move
+}
 
 
+export class OutgoingBattleRequest implements OutgoingEvent {
+    public type: EventType = EventType.BATTLE_REQUEST;
 
+    constructor(
+        public trainerID: TrainerID,
+        public body: BattleRequestBody
+    ) { }
+}
 
 
 export class HeartBeatReplyEvent implements AkkamonEvent {
