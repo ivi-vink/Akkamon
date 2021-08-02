@@ -1,7 +1,7 @@
 package akkamon.domain.model.akkamon.types;
 
-public enum AkkamonTypes {
+public enum AkkamonType {
     NORMAL,
     DRAGON,
-    PSYCHIC
+    GROUND, ELECTRIC, ICE, PSYCHIC
 }

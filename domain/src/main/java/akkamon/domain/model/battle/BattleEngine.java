@@ -5,7 +5,7 @@ import akkamon.domain.model.akkamon.Mon;
 import akkamon.domain.model.akkamon.MonStats;
 import akkamon.domain.model.akkamon.abilities.AkkamonAbilities;
 import akkamon.domain.model.akkamon.status.AkkamonStatus;
-import akkamon.domain.model.akkamon.types.AkkamonTypes;
+import akkamon.domain.model.akkamon.types.AkkamonType;
 import akkamon.domain.model.battle.events.Introduction;
 import akkamon.domain.model.battle.state.BattleState;
 
@@ -73,6 +73,11 @@ public class BattleEngine {
     }
 
     public static List<MonTeam> createDemoTeams() {
+
+        AkkamonStatus[] noStatusArray = new AkkamonStatus[] {
+                AkkamonStatus.NONE
+        };
+
         int[] baseSnorlax = {160, 110, 65, 65, 110, 30};
         int[] evs = {252, 4, 0, 0, 252, 0};
         int[] ivs = {31,31,31,31,31,31};
@@ -88,9 +93,9 @@ public class BattleEngine {
         Mon snorlax = new Mon(
                 "Snorlax",
                 stats,
-                AkkamonTypes.NORMAL,
+                AkkamonType.NORMAL,
                 AkkamonAbilities.IMMUNITY,
-                AkkamonStatus.NONE,
+                noStatusArray,
                 new String[] {
                         "Body Slam",
                         "Reflect",
@@ -114,9 +119,9 @@ public class BattleEngine {
         Mon mew = new Mon(
                 "Mew",
                 statsMew,
-                AkkamonTypes.PSYCHIC,
+                AkkamonType.PSYCHIC,
                 AkkamonAbilities.SYNCHRONIZE,
-                AkkamonStatus.NONE,
+                noStatusArray,
                 new String[] {
                         "Swords Dance",
                         "Earthquake",
@@ -144,9 +149,9 @@ public class BattleEngine {
         Mon mew2 = new Mon(
                 "Mewtwo",
                 statsMew2,
-                AkkamonTypes.PSYCHIC,
+                AkkamonType.PSYCHIC,
                 AkkamonAbilities.PRESSURE,
-                AkkamonStatus.NONE,
+                noStatusArray,
                 new String[] {
                         "Amnesia",
                         "Psychic",
@@ -171,9 +176,9 @@ public class BattleEngine {
         Mon dragonite = new Mon(
                 "Dragonite",
                 statsDragonite,
-                AkkamonTypes.DRAGON,
+                AkkamonType.DRAGON,
                 AkkamonAbilities.INNER_FOCUS,
-                AkkamonStatus.NONE,
+                noStatusArray,
                 new String[] {
                         "Blizzard",
                         "Thunder Wave",

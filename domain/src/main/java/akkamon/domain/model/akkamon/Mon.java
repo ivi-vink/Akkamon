@@ -2,15 +2,18 @@ package akkamon.domain.model.akkamon;
 
 import akkamon.domain.model.akkamon.abilities.AbilityFactory;
 import akkamon.domain.model.akkamon.abilities.AkkamonAbilities;
+import akkamon.domain.model.akkamon.moves.MoveCategory;
+import akkamon.domain.model.akkamon.moves.MoveSlot;
 import akkamon.domain.model.akkamon.moves.MovesFactory;
 import akkamon.domain.model.akkamon.status.AkkamonStatus;
+import akkamon.domain.model.akkamon.status.StatusCategory;
 import akkamon.domain.model.akkamon.status.StatusFactory;
-import akkamon.domain.model.akkamon.types.AkkamonTypes;
+import akkamon.domain.model.akkamon.types.AkkamonType;
 import akkamon.domain.model.akkamon.types.TypeFactory;
 import akkamon.domain.model.battle.Phases;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class Mon {
 
@@ -24,6 +27,8 @@ public class Mon {
     }
 
     public static abstract class Type extends TypeEquality {
+        public AkkamonType name;
+
     }
 
     public static abstract class Ability extends TypeEquality implements Phases {
@@ -35,21 +40,40 @@ public class Mon {
     }
 
     public static abstract class Move implements Phases {
+        public String name;
+        public Mon.Type type;
+        public MoveCategory category;
+        public Stat PP;
+        public int power;
+        public double accuracy;
+
+        public Move(String name, Mon.Type type,
+                        MoveCategory category,
+                        Stat PP,
+                        int power,
+                        double accuracy) {
+            this.name = name;
+            this.type = type;
+            this.category = category;
+            this.PP = PP;
+            this.power = power;
+            this.accuracy = accuracy;
+        }
     }
 
     private String name;
     private MonStats stats;
     private Type type;
     private Ability ability;
-    private Status status;
-    private Map<String, Move> moves;
+    private Map<StatusCategory, List<Status>> status;
+    private Map<MoveSlot, Move> moves;
 
-    public Mon(String name, MonStats stats, AkkamonTypes typeName, AkkamonAbilities abilityName, AkkamonStatus statusName, String[] moveNames) {
+    public Mon(String name, MonStats stats, AkkamonType typeName, AkkamonAbilities abilityName, AkkamonStatus[] statusNames, String[] moveNames) {
         this.name = name;
         this.stats = stats;
         this.type = new TypeFactory().fromName(typeName);
         this.ability = new AbilityFactory().fromName(abilityName);
-        this.status = new StatusFactory().fromName(statusName);
+        this.status = new StatusFactory().fromName(statusNames);
         this.moves = new MovesFactory().fromNames(moveNames);
     }
 
@@ -63,7 +87,7 @@ public class Mon {
         return ability;
     }
 
-    public Status getStatus() {
+    public Map<StatusCategory, List<Status>> getStatus() {
         return status;
     }
 

@@ -53,7 +53,7 @@ export default class BattleScene extends Phaser.Scene {
 
     traverseMenusBackwards() {
         this.popMenu();
-        if (this.menus.size() > 1) {
+        if (!this.menus.isEmpty()) {
             this.menuTakesUIControl(this.input, this.menus.peek()!);
             this.menus.peek()!.setMenuVisible(true);
         }
@@ -149,5 +149,9 @@ export default class BattleScene extends Phaser.Scene {
 
     clearDialogue() {
         this.dialogueBox!.clearText();
+    }
+
+    getActiveMon(): Mon {
+        return client.getActiveMon();
     }
 }

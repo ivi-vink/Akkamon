@@ -1,4 +1,4 @@
-import type { BattleEvent, BattleInitEvent, BattleMessage, BattleState } from '../client/IncomingEvents';
+import type { BattleEvent, BattleInitEvent, BattleMessage, BattleState, Mon } from '../client/IncomingEvents';
 import { baseQueue, queueFromArray } from '../DataWrappers';
 import type BattleScene from '../scenes/BattleScene';
 import type { WorldScene } from '../scenes/WorldScene';
@@ -123,5 +123,9 @@ export class BattleEngine extends AkkamonEngine {
         );
 
 
+    }
+
+    getActiveMon(): Mon {
+        return this.state.teams[this.playerName].activeMon;
     }
 }

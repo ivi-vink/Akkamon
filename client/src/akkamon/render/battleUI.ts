@@ -1,4 +1,4 @@
-import type { Mon, Stat } from "../client/IncomingEvents";
+import type { Mon, Move, Stat } from "../client/IncomingEvents";
 import { baseQueue, Queue } from "../DataWrappers";
 import type BattleScene from "../scenes/BattleScene";
 import { AkkamonMenu, Dialogue, MenuText, Picker } from "../scenes/UIElement";
@@ -283,10 +283,13 @@ export class BattleOptions extends Phaser.GameObjects.Image implements AkkamonMe
     }
 
     [BattleOptionsButtons.TOP_RIGHT]() {
+
     }
 
     [BattleOptionsButtons.TOP_LEFT]() {
-        // fight menu
+        this.battleScene.pushMenu(new MovesOptions(
+            this.battleScene
+        ));
     }
 
     [BattleOptionsButtons.BOT_LEFT]() {
@@ -297,6 +300,288 @@ export class BattleOptions extends Phaser.GameObjects.Image implements AkkamonMe
 
     setMenuVisible() {
     }
+
+}
+
+export enum MoveSlot {
+    FIRST = "FIRST",
+    SECOND = "SECOND",
+    THIRD = "THIRD",
+    FOURTH = "FOURTH"
+}
+
+class MoveDescription extends Phaser.GameObjects.Image {
+    battleScene: BattleScene;
+    group: Phaser.GameObjects.Group;
+    moves: {
+        [slot in MoveSlot]: Move
+    }
+    moveType: MenuText;
+    PP: MenuText;
+
+    constructor(
+        scene: BattleScene,
+                group: Phaser.GameObjects.Group,
+                groupDepth: number,
+                pos: {x: number, y: number},
+                size: {width: number, height: number},
+                ori: {x: number, y: number},
+                moves: {[slot in MoveSlot]: Move},
+    ) {
+        super(scene, pos.x, pos.y, "move-type-info");
+        this.setDisplaySize(size.width, size.height);
+        this.setOrigin(ori.x, ori.y);
+        this.battleScene = scene;
+        this.scene.add.existing(this);
+        this.group = group;
+        this.group.add(this);
+        this.setDepth(groupDepth);
+
+        this.moves = moves;
+
+        let topleft = {x: this.x - this.displayWidth, y: this.y - this.displayHeight}
+        let typeHeader = new MenuText(
+            scene,
+            group,
+            groupDepth,
+            topleft.x + 40, topleft.y + 40,
+            "TYPE/"
+        );
+
+        this.moveType = new MenuText(
+            scene,
+            group,
+            groupDepth,
+            topleft.x + this.displayWidth / 2 - 40,
+            topleft.y + this.displayHeight / 2 - 20,
+            ""
+        );
+
+        this.PP = new MenuText(
+            scene,
+            group,
+            groupDepth,
+            this.x - 140, this.y - 70,
+            ""
+        );
+
+    }
+
+    setDescribedMove(slot: MoveSlot) {
+        let move = this.moves[slot];
+        this.moveType.text = move.type.name;
+        this.PP.text = move.PP.effective + " / " + move.PP.base;
+    }
+}
+
+export class MovesOptions extends Phaser.GameObjects.Image implements AkkamonMenu {
+    battleScene: BattleScene;
+    group: Phaser.GameObjects.Group;
+    camera: Phaser.Cameras.Scene2D.Camera;
+    buttons: Map<MoveSlot, MenuText>;
+    groupDepth?: number;
+
+    mon: Mon;
+
+    paddingX: number;
+    paddingY: number;
+
+
+    movesSpacing: number;
+    buttonSpacing: number;
+
+    picker?: Picker;
+    pickerPosition?: MoveSlot;
+
+    moveDescription: MoveDescription
+
+    constructor(scene: BattleScene) {
+        let camera = scene.cameras.main;
+        super(scene,
+              camera.scrollX + camera.width,
+              camera.scrollY + camera.height,
+              "moves-dialogue")
+
+        this.mon = scene.getActiveMon();
+
+        this.setOrigin(1,1)
+        this.setVisible(true)
+        let height = 0.28 * camera.width;
+        this.setDisplaySize((2.78) * height, height);
+
+        this.paddingX = 100;
+        this.paddingY = 50;
+
+        this.battleScene = scene;
+        this.group = new Phaser.GameObjects.Group(scene);
+        this.camera = camera;
+
+        this.buttonSpacing = 40;
+        this.movesSpacing = 40;
+
+        scene.add.existing(this);
+        this.group.add(this);
+
+        this.buttons = new Map();
+        this.groupDepth = 30;
+        this.setDepth(this.groupDepth);
+        this.group.setDepth(30);
+
+        this.setButtons(this.mon);
+
+        this.picker = new Picker(
+            this.scene,
+            this.group,
+            0,
+            0,
+            "menupicker"
+        );
+        this.picker.setDepth(this.groupDepth + 1);
+
+        this.moveDescription = new MoveDescription(
+            this.battleScene,
+            this.group,
+            this.groupDepth,
+            {x: this.x - this.displayWidth * (1 - (530/1191.8)), y: this.y - this.displayHeight * (1 - (55 / 432))},
+            {width: (560 + 306) / 1191.8 * this.displayWidth, height: (560 + 306) / 1191.8 * this.displayWidth * 0.378},
+            {x: 1, y: 1},
+            this.mon.moves
+        );
+
+        this.setPicker(MoveSlot.FIRST);
+
+    }
+
+    setPicker(position: MoveSlot) {
+        let button = this.buttons.get(position);
+        this.pickerPosition = position;
+
+        console.log(button);
+        this.picker!.setPosition(
+            button!.x - this.buttonSpacing,
+            button!.y
+        );
+        this.moveDescription.setDescribedMove(position);
+    }
+
+    setMenuVisible() {
+    }
+
+    destroyGroup() {
+        this.group!.destroy(true);
+    }
+
+    destroyAndGoBack() {
+        console.log("Destroy and go back of: ");
+        console.log(this);
+        this.battleScene.traverseMenusBackwards();
+        this.destroyGroup();
+    }
+
+    confirm() {
+        this[this.pickerPosition!]();
+    }
+
+    [MoveSlot.FIRST]() {
+    }
+    [MoveSlot.SECOND]() {
+    }
+    [MoveSlot.THIRD]() {
+    }
+    [MoveSlot.FOURTH]() {
+    }
+
+    setButtons(mon: Mon) {
+        for (let pos in MoveSlot) {
+            console.log("Need to set move " + pos + " for mon: ");
+            console.log(mon);
+
+            const position: MoveSlot = MoveSlot[pos as keyof typeof MoveSlot];
+            var x = this.x - this.displayWidth + this.paddingX;
+            var y = this.y - this.displayHeight;
+
+            //console.log(pos)
+            switch (position) {
+                case MoveSlot.FIRST:
+                    console.log("setting " + pos);
+                    y = y + this.paddingY;
+                    break;
+                case MoveSlot.SECOND:
+                    console.log("setting " + pos);
+                    y = y + this.paddingY + this.movesSpacing;
+                    break;
+                case MoveSlot.THIRD:
+                    console.log("setting " + pos);
+                    y = y + this.paddingY + 2 * this.movesSpacing;
+                    break;
+                case MoveSlot.FOURTH:
+                    console.log("setting " + pos);
+                    y = y + this.paddingY + 3 * this.movesSpacing;
+                    break;
+            }
+
+            let text = new MenuText(
+                    this.battleScene,
+                    this.group,
+                    this.groupDepth!,
+                    x,
+                    y,
+                    mon.moves[position].name
+                )
+            text.setOrigin(0, 0.5);
+
+            console.log(position);
+            console.log(x);
+            console.log(y);
+            this.buttons.set(
+                position,
+                text
+            )
+        }
+    }
+
+    selectButton(direction: Direction) {
+        this[direction]();
+    }
+
+    [Direction.NONE]() {
+    }
+    [Direction.UP]() {
+        switch (this.pickerPosition) {
+            case MoveSlot.SECOND:
+                this.setPicker(MoveSlot.FIRST);
+                break;
+            case MoveSlot.THIRD:
+                this.setPicker(MoveSlot.SECOND);
+                break;
+            case MoveSlot.FOURTH:
+                this.setPicker(MoveSlot.THIRD);
+                break;
+            default:
+                break;
+        }
+    }
+    [Direction.LEFT]() {
+        this.destroyAndGoBack();
+    }
+    [Direction.RIGHT]() {
+    }
+    [Direction.DOWN]() {
+        switch (this.pickerPosition) {
+            case MoveSlot.FIRST:
+                this.setPicker(MoveSlot.SECOND);
+                break;
+            case MoveSlot.SECOND:
+                this.setPicker(MoveSlot.THIRD);
+                break;
+            case MoveSlot.THIRD:
+                this.setPicker(MoveSlot.FOURTH);
+                break;
+            default:
+                break;
+        }
+    }
+
 }
 
 class HPBar extends Phaser.GameObjects.Rectangle {

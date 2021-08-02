@@ -6,8 +6,8 @@ import akkamon.domain.model.akkamon.abilities.AkkamonAbilities;
 import akkamon.domain.model.akkamon.abilities.Immunity;
 import akkamon.domain.model.akkamon.status.AkkamonStatus;
 import akkamon.domain.model.akkamon.status.NoStatus;
-import akkamon.domain.model.akkamon.types.AkkamonTypes;
-import akkamon.domain.model.akkamon.types.NormalType;
+import akkamon.domain.model.akkamon.types.AkkamonType;
+import akkamon.domain.model.akkamon.types.implementations.NormalType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Nested;
 
@@ -36,9 +36,9 @@ class MonTest {
         Mon snorlax = new Mon(
                 "Snorlax",
                 stats,
-                AkkamonTypes.NORMAL,
+                AkkamonType.NORMAL,
                 AkkamonAbilities.IMMUNITY,
-                AkkamonStatus.NONE,
+                new AkkamonStatus[] {AkkamonStatus.NONE},
                 new String[] {
                         "Body Slam",
                         "Reflect",

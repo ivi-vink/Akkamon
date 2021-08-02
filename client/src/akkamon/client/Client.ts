@@ -35,7 +35,8 @@ import {
 import type {
     IncomingEvent,
     IncomingInteractionRequest,
-    BattleInitEvent
+    BattleInitEvent,
+    Mon
 } from './IncomingEvents';
 
 import {
@@ -306,5 +307,9 @@ export class Client implements AkkamonClient
     setBattleControls(input: Phaser.Input.InputPlugin, menu: any) {
         console.log("setting battle controls!");
         this.controls! = new BattleControls(input, menu);
+    }
+
+    getActiveMon(): Mon {
+        return this.BattleEngine!.getActiveMon();
     }
 }

@@ -1,6 +1,7 @@
 import { EventType, AkkamonEvent } from './EventType';
 import type { Direction } from '../render/Direction';
 import type { BattleEventType } from '../render/BattleEngine';
+import type { MoveSlot } from '../render/battleUI';
 
 
 type TrainerID = {id: string, scene: string}
@@ -28,6 +29,19 @@ export type Stat = {
     effective: number
 }
 
+export type Type = {
+    name: string
+}
+
+export type Move = {
+    name: string,
+    type: Type
+    category: string,
+    PP: Stat,
+    power: number,
+    accuracy: number
+}
+
 export type Mon = {
     name: string,
     stats: {
@@ -42,6 +56,9 @@ export type Mon = {
         evasion: Stat,
     },
     status: {}
+    moves: {
+        [slot in MoveSlot]: Move
+    }
 }
 
 export interface IncomingEvent extends AkkamonEvent {
