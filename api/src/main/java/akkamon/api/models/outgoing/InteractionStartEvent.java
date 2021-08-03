@@ -1,5 +1,7 @@
-package akkamon.api.models;
+package akkamon.api.models.outgoing;
 
+import akkamon.api.models.Event;
+import akkamon.api.models.EventType;
 import com.google.gson.JsonElement;
 
 public class InteractionStartEvent extends Event {

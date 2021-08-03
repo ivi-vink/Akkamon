@@ -1,6 +1,6 @@
 package akkamon.domain.model.akkamon.abilities;
 
-import akkamon.domain.model.Factory;
+import akkamon.domain.model.akkamon.Factory;
 import akkamon.domain.model.akkamon.Mon;
 
 public class AbilityFactory implements Factory<Mon.Ability, AkkamonAbilities> {

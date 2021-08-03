@@ -49,7 +49,7 @@ import {
     StopMovingEvent,
     BattleRequestBody,
     RequestBattleAction,
-    OutgoingBattleRequest
+    BattleActionRequest
 } from './OutgoingEvents';
 
 import type BattleScene from '../scenes/BattleScene';
@@ -318,7 +318,7 @@ export class Client implements AkkamonClient
 
     makeBattleRequest(body: BattleRequestBody) {
         this.send(
-            new OutgoingBattleRequest(
+            new BattleActionRequest(
                 this.getTrainerID()!,
                 body
             )

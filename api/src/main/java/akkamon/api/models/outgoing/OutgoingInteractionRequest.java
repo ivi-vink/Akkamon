@@ -1,5 +1,7 @@
-package akkamon.api.models;
+package akkamon.api.models.outgoing;
 
+import akkamon.api.models.Event;
+import akkamon.api.models.EventType;
 import akkamon.domain.actors.AkkamonNexus;
 
 public class OutgoingInteractionRequest extends Event {

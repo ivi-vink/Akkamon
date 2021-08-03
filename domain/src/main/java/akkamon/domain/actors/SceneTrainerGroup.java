@@ -6,7 +6,7 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
-import akkamon.domain.HeartBeatQuery;
+import akkamon.domain.actors.tasks.heartbeat.HeartBeatQuery;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -78,8 +78,22 @@ public class SceneTrainerGroup extends AbstractBehavior<SceneTrainerGroup.Comman
                         this::onHeartBeat
                 )
                 .onMessage(AkkamonNexus.BattleStart.class,
-                        this::onBattleStarting)
+                        this::onBattleStarting
+                )
+                .onMessage(
+                        AkkamonBattle.RequestAction.class, this::onRequestBattleAction
+                )
                 .build();
+    }
+
+    private SceneTrainerGroup onRequestBattleAction(AkkamonBattle.RequestAction requestAction) {
+        ActorRef<Trainer.Command> trainer = trainerIDToActor.get(requestAction.trainerID);
+        if (trainer != null) {
+            trainer.tell(requestAction);
+        } else {
+            getContext().getLog().info("Ignoring battle action request");
+        }
+        return this;
     }
 
     private SceneTrainerGroup onBattleStarting(AkkamonNexus.BattleStart battle) {

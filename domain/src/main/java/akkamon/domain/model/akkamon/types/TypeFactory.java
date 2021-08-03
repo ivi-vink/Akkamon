@@ -1,6 +1,6 @@
 package akkamon.domain.model.akkamon.types;
 
-import akkamon.domain.model.Factory;
+import akkamon.domain.model.akkamon.Factory;
 import akkamon.domain.model.akkamon.Mon;
 import akkamon.domain.model.akkamon.types.implementations.*;
 

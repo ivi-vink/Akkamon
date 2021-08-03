@@ -1,6 +1,6 @@
 import { client } from '../../app';
 import type { Mon, Move } from '../client/IncomingEvents';
-import { OutgoingBattleRequest, RequestBattleAction } from '../client/OutgoingEvents';
+import { BattleActionRequest, RequestBattleAction } from '../client/OutgoingEvents';
 import { baseStack, Queue, queueFromArray } from '../DataWrappers';
 import type { BasePhaserScene, GConstructor } from '../PhaserTypes';
 import type { BattleUIEvent, DialogueUIEvent, InstantUIEvent } from '../render/BattleEngine';
@@ -173,7 +173,7 @@ export default class BattleScene extends Phaser.Scene {
         this.setWaitingUntilBattleEvent();
         client.makeBattleRequest(
             {
-                requestAction: RequestBattleAction,
+                requestAction: RequestBattleAction.FIGHT,
                 move: move
             }
         );

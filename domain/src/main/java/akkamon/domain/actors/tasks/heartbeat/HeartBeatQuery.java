@@ -1,4 +1,4 @@
-package akkamon.domain;
+package akkamon.domain.actors.tasks.heartbeat;
 
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;

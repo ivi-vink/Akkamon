@@ -8,6 +8,7 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import akkamon.domain.model.battle.BattleEngine;
 import akkamon.domain.model.battle.BattleMessage;
+import akkamon.domain.model.battle.requests.BattleRequestBody;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -19,6 +20,26 @@ public class AkkamonBattle extends AbstractBehavior<AkkamonBattle.Command> {
 
     public interface Command { }
 
+    public static class RequestAction 
+            implements AkkamonNexus.Command, SceneTrainerGroup.Command, Trainer.Command, Command {
+
+        public AkkamonNexus.TrainerID trainerID;
+        public BattleRequestBody body;
+
+        public RequestAction(AkkamonNexus.TrainerID trainerID, BattleRequestBody battleRequestBody) {
+            this.trainerID = trainerID;
+            this.body = battleRequestBody;
+        }
+
+        @Override
+        public String toString() {
+            return "RequestAction{" +
+                    "trainerID=" + trainerID +
+                    ", body=" + body +
+                    '}';
+        }
+    }
+    
     public static class BattleCreatedResponse implements AkkamonNexus.Command {
         public Set<AkkamonNexus.TrainerID> participants;
         public Map<AkkamonNexus.TrainerID, BattleMessage> initState;
@@ -46,6 +67,8 @@ public class AkkamonBattle extends AbstractBehavior<AkkamonBattle.Command> {
 
     private ActorRef<AkkamonNexus.Command> replyTo;
 
+    private Set<RequestAction> nextTurnActions = new HashSet<>();
+
     public AkkamonBattle(
             ActorContext<Command> context,
             Set<AkkamonNexus.TrainerID> participants,
@@ -72,6 +95,17 @@ public class AkkamonBattle extends AbstractBehavior<AkkamonBattle.Command> {
                 .build();
     }
 
+    private Behavior<Command> onRequestBattleAction(RequestAction requestAction) {
+        nextTurnActions.add(requestAction);
+        if (nextTurnActions.size() == participants.size()) {
+            engine.play(nextTurnActions);
+            nextTurnActions.clear();
+        } else {
+            getContext().getLog().info("Received battle action request of {} but not playing until all received, {}", requestAction.trainerID, requestAction.body);
+        }
+        return inProgress();
+    }
+
     private Behavior<Command> onBattleStart(AkkamonNexus.BattleStart start) {
         AkkamonNexus.TrainerID linkingTrainer = start.trainerID;
         getContext().getLog().info(String.valueOf(needLink));
@@ -95,6 +129,7 @@ public class AkkamonBattle extends AbstractBehavior<AkkamonBattle.Command> {
 
     private Behavior<Command> inProgress() {
         return Behaviors.receive(Command.class)
+                .onMessage(RequestAction.class, this::onRequestBattleAction)
                 .build();
     }
 

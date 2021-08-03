@@ -35,8 +35,8 @@ export type BattleRequestBody = {
 }
 
 
-export class OutgoingBattleRequest implements OutgoingEvent {
-    public type: EventType = EventType.BATTLE_REQUEST;
+export class BattleActionRequest implements OutgoingEvent {
+    public type: EventType = EventType.BATTLE_ACTION_REQUEST;
 
     constructor(
         public trainerID: TrainerID,

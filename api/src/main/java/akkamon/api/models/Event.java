@@ -1,8 +1,9 @@
 package akkamon.api.models;
 
+import akkamon.domain.model.battle.requests.BattleRequestBody;
 import akkamon.domain.actors.AkkamonNexus;
-import akkamon.domain.Direction;
-import akkamon.domain.TilePos;
+import akkamon.domain.actors.tasks.heartbeat.Direction;
+import akkamon.domain.actors.tasks.heartbeat.TilePos;
 
 public class Event {
     public EventType type;
@@ -12,5 +13,19 @@ public class Event {
     public Interaction interaction;
     public String requestName;
     public boolean value;
-    public BattleRequestBody battleRequestBody;
+    public BattleRequestBody body;
+
+    @Override
+    public String toString() {
+        return "Event{" +
+                "type=" + type +
+                ", trainerID=" + trainerID +
+                ", direction=" + direction +
+                ", tilePos=" + tilePos +
+                ", interaction=" + interaction +
+                ", requestName='" + requestName + '\'' +
+                ", value=" + value +
+                ", body=" + body +
+                '}';
+    }
 }

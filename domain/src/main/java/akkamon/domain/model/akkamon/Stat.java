@@ -8,4 +8,12 @@ public class Stat {
         this.base = base;
         this.effective = base;
     }
+
+    @Override
+    public String toString() {
+        return "Stat{" +
+                "base=" + base +
+                ", effective=" + effective +
+                '}';
+    }
 }

@@ -3,12 +3,19 @@ package akkamon.api;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.ActorSystem;
 import akkamon.api.models.*;
+import akkamon.api.models.battle.BattleInitEvent;
+import akkamon.api.models.outgoing.HeartBeatEvent;
+import akkamon.api.models.outgoing.InteractionStartEvent;
+import akkamon.api.models.outgoing.OutgoingInteractionRequest;
 import akkamon.domain.AkkamonMessageEngine;
 import akkamon.domain.actors.AkkamonBattle;
 import akkamon.domain.actors.AkkamonNexus;
 import akkamon.domain.AkkamonSession;
-import akkamon.domain.InteractionHandshaker;
+import akkamon.domain.actors.tasks.interactions.InteractionHandshaker;
+import akkamon.domain.model.akkamon.Mon;
+import akkamon.domain.model.battle.requests.JsonToMove;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.util.*;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -23,7 +30,9 @@ public class MessagingEngine implements AkkamonMessageEngine {
     private Map<AkkamonNexus.TrainerID, AkkamonSession> trainerIDToAkkamonSessions = new HashMap<>();
     private Map<String, ActorRef<InteractionHandshaker.Command>> pendingInteractioRequestToHandshaker = new HashMap<>();
 
-    private Gson gson = new Gson();
+    private final Gson gson = new GsonBuilder()
+            .registerTypeAdapter(Mon.Move.class, new JsonToMove())
+            .create();
 
     public MessagingEngine() {
         this.nexus = ActorSystem.create(AkkamonNexus.create(this), "akkamon-system");
@@ -198,7 +207,13 @@ public class MessagingEngine implements AkkamonMessageEngine {
         }
     }
 
+    @Override
+    public void removeTrainerSessionFromHeartBeat(AkkamonNexus.TrainerID trainerID, AkkamonSession session) {
+        trainerIDToAkkamonSessions.remove(trainerID);
+    }
+
     void incoming(AkkamonSession session, String message) {
+        // System.out.println(message);
         Event event = gson.fromJson(message, Event.class);
         if (event == null) {
             System.out.println("Received non-supported message DTO.");
@@ -262,6 +277,14 @@ public class MessagingEngine implements AkkamonMessageEngine {
                         session,
                         nexus
                 ));
+                break;
+            case BATTLE_ACTION_REQUEST:
+                nexus.tell(
+                        new AkkamonBattle.RequestAction(
+                                event.trainerID,
+                                event.body
+                        )
+                );
                 break;
             case HEART_BEAT:
                 //System.out.println("My <3 beats!");

@@ -6,8 +6,8 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
-import akkamon.domain.Direction;
-import akkamon.domain.TilePos;
+import akkamon.domain.actors.tasks.heartbeat.Direction;
+import akkamon.domain.actors.tasks.heartbeat.TilePos;
 
 import java.util.LinkedList;
 import java.util.Optional;
@@ -90,15 +90,33 @@ public class Trainer extends AbstractBehavior<Trainer.Command> {
                         RequestNewTilePos.class,
                         this::onNewTilePos
                 )
-                .onMessage(AkkamonNexus.BattleStart.class, this::onBattleStart)
+                .onMessage(
+                        AkkamonNexus.BattleStart.class, this::onBattleStart
+                )
+                .onMessage(
+                        AkkamonBattle.RequestAction.class, this::onRequestBattleAction
+                )
             .build();
     }
 
     private Behavior<Command> battling() {
         return Behaviors.receive(Command.class)
                 .onMessage(ReadMovementQueue.class, this::onReadMovementQueue)
+                .onMessage(
+                        AkkamonBattle.RequestAction.class, this::onRequestBattleAction
+                )
                 .build();
     }
+
+    private Trainer onRequestBattleAction(AkkamonBattle.RequestAction requestAction) {
+        if (battleRef != null) {
+            battleRef.tell(requestAction);
+        } else {
+            getContext().getLog().info("trainer is not in a battle!");
+        }
+        return this;
+    }
+
 
     private Behavior<Command> onBattleStart(AkkamonNexus.BattleStart battle) {
         getContext().getLog().info("Trainer {} now has a battle ref and has battle behavior", trainerID);

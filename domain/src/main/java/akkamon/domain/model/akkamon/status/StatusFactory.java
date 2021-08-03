@@ -1,8 +1,6 @@
 package akkamon.domain.model.akkamon.status;
 
-import akkamon.domain.model.Factory;
 import akkamon.domain.model.akkamon.Mon;
-import akkamon.domain.model.akkamon.moves.MoveSlot;
 
 import java.util.ArrayList;
 import java.util.HashMap;

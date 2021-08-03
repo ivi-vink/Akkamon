@@ -30,10 +30,13 @@ public enum EventType {
     @SerializedName("InteractionReplyEvent")
     INTERACTION_REPLY,
 
+    @SerializedName("InteractionStarting")
+    INTERACTION_START,
+
     @SerializedName("BattleInitEvent")
     BATTLE_INIT,
 
-    @SerializedName("InteractionStarting")
-    INTERACTION_START
+    @SerializedName("BattleActionRequest")
+    BATTLE_ACTION_REQUEST,
 
 }

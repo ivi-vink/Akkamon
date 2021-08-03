@@ -1,5 +1,6 @@
 package akkamon.domain.model.battle;
 
+import akkamon.domain.actors.AkkamonBattle;
 import akkamon.domain.actors.AkkamonNexus;
 import akkamon.domain.model.akkamon.Mon;
 import akkamon.domain.model.akkamon.MonStats;
@@ -70,6 +71,10 @@ public class BattleEngine {
             ));
         }
         return messageMap;
+    }
+
+    public void play(Set<AkkamonBattle.RequestAction> nextTurnActions) {
+        System.out.println("Playing actions:" + nextTurnActions);
     }
 
     public static List<MonTeam> createDemoTeams() {

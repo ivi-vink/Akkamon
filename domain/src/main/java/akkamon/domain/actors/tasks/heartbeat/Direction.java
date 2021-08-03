@@ -1,4 +1,4 @@
-package akkamon.domain;
+package akkamon.domain.actors.tasks.heartbeat;
 
 public enum Direction {
     UP,

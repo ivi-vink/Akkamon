@@ -31,15 +31,15 @@ public class Mon {
 
     }
 
-    public static abstract class Ability extends TypeEquality implements Phases {
+    public static abstract class Ability extends TypeEquality {
 
     }
 
-    public static abstract class Status extends TypeEquality implements Phases {
+    public static abstract class Status extends TypeEquality {
 
     }
 
-    public static abstract class Move implements Phases {
+    public static abstract class Move {
         public String name;
         public Mon.Type type;
         public MoveCategory category;
@@ -58,6 +58,18 @@ public class Mon {
             this.PP = PP;
             this.power = power;
             this.accuracy = accuracy;
+        }
+
+        @Override
+        public String toString() {
+            return "Move{" +
+                    "name='" + name + '\'' +
+                    ", type=" + type +
+                    ", category=" + category +
+                    ", PP=" + PP +
+                    ", power=" + power +
+                    ", accuracy=" + accuracy +
+                    '}';
         }
     }
 

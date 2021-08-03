@@ -7,6 +7,9 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import akkamon.domain.*;
+import akkamon.domain.actors.tasks.heartbeat.Direction;
+import akkamon.domain.actors.tasks.interactions.InteractionHandshaker;
+import akkamon.domain.actors.tasks.heartbeat.TilePos;
 
 import java.time.Duration;
 import java.util.*;
@@ -298,7 +301,20 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
                 .onMessage(RespondInteractionHandshaker.class, this::onInteractionHandshakerResponse)
 
                 .onMessage(AkkamonBattle.BattleCreatedResponse.class, this::onBattleCreatedResponse)
+                .onMessage(AkkamonBattle.RequestAction.class, this::onRequestBattleAction)
                 .build();
+    }
+
+    private AkkamonNexus onRequestBattleAction(AkkamonBattle.RequestAction requestAction) {
+        // just pass on the message for now
+        // TODO do some checks here?
+        ActorRef<SceneTrainerGroup.Command> sceneContaining = sceneIdToActor.get(requestAction.trainerID.scene);
+        if (sceneContaining != null) {
+            sceneContaining.tell(requestAction);
+        } else {
+            getContext().getLog().info("Ignoring battle request");
+        }
+        return this;
     }
 
     private AkkamonNexus onBattleCreatedResponse(AkkamonBattle.BattleCreatedResponse r) {
@@ -372,6 +388,7 @@ public class AkkamonNexus extends AbstractBehavior<AkkamonNexus.Command> {
     private AkkamonNexus onTrainerOffline(RespondTrainerOffline trainerOfflineMsg) {
         getContext().getLog().info("Removing {} from akkamon sessions!", trainerOfflineMsg.session.gettrainerID());
         messageEngine.removeTrainerSessionFromScene(trainerOfflineMsg.trainerID, trainerOfflineMsg.session);
+        messageEngine.removeTrainerSessionFromHeartBeat(trainerOfflineMsg.trainerID, trainerOfflineMsg.session);
         return this;
     }
 

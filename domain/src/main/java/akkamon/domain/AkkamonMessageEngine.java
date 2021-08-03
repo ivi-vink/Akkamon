@@ -3,6 +3,7 @@ package akkamon.domain;
 import akka.actor.typed.ActorRef;
 import akkamon.domain.actors.AkkamonBattle;
 import akkamon.domain.actors.AkkamonNexus;
+import akkamon.domain.actors.tasks.interactions.InteractionHandshaker;
 
 import java.util.List;
 import java.util.Map;
@@ -27,4 +28,6 @@ public interface AkkamonMessageEngine {
     void broadCastHandshakeFail(String requestName, Set<AkkamonNexus.TrainerID> waitingToStartInteraction);
 
     void broadCastBattleStart(AkkamonBattle.BattleCreatedResponse response);
+
+    void removeTrainerSessionFromHeartBeat(AkkamonNexus.TrainerID trainerID, AkkamonSession session);
 }
