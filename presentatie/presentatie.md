@@ -341,4 +341,221 @@ class Bart ...
 
 # Het actor systeem van akkamon: spelers laten bewegen in de wereld
 
-![test](./test.gif)
+![5](./lopenShort.gif)
+
+* TrainerID, Direction enum en TilePos data
+
+```java
+                     class TrainerID {                  enum Direction {                   class TilePos {
+                         String id;                         UP,                                int x;
+                         String scene;                      DOWN,                              int y;
+                     }                                      LEFT,                          }
+                                                            RIGHT,
+                                                            NONE
+                                                        }
+```
+
+* Movement voor een actor berichten
+
+```java
+            class RequestStartMoving {                       class RequestStopMoving {    class RequestNewTilePos {
+                long requestId;                                  ...same as start             long requestId;
+                TrainerID trainerID;                         }                                TrainerID trainerID;
+                Direction direction;                                                          TilePos tilePos;
+                ActorRef<AkkamonNexus.Command> replyTo;                                       ActorRef<AkkamonNexus.Command> replyTo;
+            }                                                                             }
+```
+
+> Naar welke actor gaan deze berichten?
+
+---
+
+# Hoe gaan we van Direction input naar spelers bewegen? Direction Queue's sturen met HeartBeats
+
+* Start timer voor 200ms, als de tijd voorbij is dan vraag je om een HeartBeat
+
+```
+                                                    ┌─────┐
+                                                    │Nexus│
+                                                    └─────┘
+                                                  /    |
+                                                 .     .  <- Map<sceneId, actor>
+                                                 |     |
+                                            ┌─────┐
+                                            │Scene│    ...
+                                            └─────┘
+                                           /   |
+                                          .    .  <- Map<TrainerID, actor>
+                     ┌─────────┐          |    |
+                     │MoveQueue│┌──────────┐
+                     └─────────┘   Trainer │   ...
+                     └─────────────────────┘
+```
+
+---
+
+```
+                                        speler begint naar boven te bewegen
+
+                                                       |
+                                                       |
+                                                      \|/
+                                                       .
+                                                       tell(StartMovingRequest)
+                                                       |
+                                                      \|/
+                                                       .
+                                                    ┌─────┐
+                                                    │Nexus│
+                                                    └─────┘
+                                                  /    |
+                                                 .     .
+                                                 |     |
+                                            ┌─────┐
+                                            │Scene│    ...
+                                            └─────┘
+                                           /   |
+                                          .    .
+                     ┌─────────┐          |    |
+                     │MoveQueue│┌──────────┐
+                     └─────────┘   Trainer │   ...
+                     └─────────────────────┘
+```
+
+---
+
+```
+                                                    ┌─────┐
+                                                    │Nexus│
+                                                    └─────┘
+                                                  /    |
+                                                 .     .
+                                                 |     |
+                                            ┌─────┐
+                                            │Scene│    ...
+                                            └─────┘
+                                           /   |
+                     Direction.UP         .    .
+                     ┌─────────┐          |    |
+                     │MoveQueue│┌──────────┐
+                     └─────────┘   Trainer │   ...
+                     └─────────────────────┘
+```
+
+---
+
+
+```
+                                        speler bereikt een nieuwe TilePos
+
+                                                       |
+                                                       |
+                                                      \|/
+                                                       .
+                                                       tell(NewTilePosRequest)
+                                                       |
+                                                      \|/
+                                                       .
+                                                    ┌─────┐
+                                                    │Nexus│
+                                                    └─────┘
+                                                  /    |
+                                                 .     .
+                                                 |     |
+                                            ┌─────┐
+                                            │Scene│    ...
+                                            └─────┘
+                                           /   |
+                     Direction.UP         .    .
+                     ┌─────────┐          |    |
+                     │MoveQueue│┌──────────┐
+                     └─────────┘   Trainer │   ...
+                     └─────────────────────┘
+```
+
+---
+
+
+```
+                                                    ┌─────┐
+                                                    │Nexus│
+                                                    └─────┘
+                                                  /    |
+                                                 .     .
+                                                 |     |
+                                            ┌─────┐
+                                            │Scene│    ...
+                                            └─────┘
+                     Direction.UP          /   |
+                     Direction.UP         .    .
+                     ┌─────────┐          |    |
+                     │MoveQueue│┌──────────┐
+                     └─────────┘   Trainer │   ...
+                     └─────────────────────┘
+```
+
+---
+
+# 200ms zijn voorbij
+
+```
+                                                Automatische timer
+
+                                                       |
+                                                       |
+                                                      \|/
+                                                       .
+                                                       tell(HeartBeatRequest)
+                                                       |
+                                                      \|/
+                                                       .
+                         ┌─────┐<---.             ┌─────┐
+                         │Query│     \            │Nexus│
+                         └─────┘      .spawn      └─────┘
+                                        (Query)    /    |
+                                          \       .     .
+                                           \      |     |
+                                            ┌─────┐
+                                            │Scene│    ...
+                                            └─────┘
+                     Direction.UP          /   |
+                     Direction.UP         .    .
+                     ┌─────────┐          |    |
+                     │MoveQueue│┌──────────┐
+                     └─────────┘   Trainer │   ...
+                     └─────────────────────┘
+```
+
+---
+
+```
+
+                                    Verzend naar spelers en speel de moves af
+                                                     .
+                                                    /|\
+                                                     |
+                                                     |
+                         ┌─────┐                  ┌─────┐
+                         │Query│-tell(HeartBeat)->│Nexus│
+                         └─────┘       Response   └─────┘
+                           |                       /    |
+                           |                      .     .
+                      Direction.UP                |     |
+                      Direction.UP          ┌─────┐
+                           .                │Scene│    ...
+                          /|\               └─────┘
+                           |                /   |
+                           |               .    .
+                     ┌─────────┐           |    |
+                     │MoveQueue│┌──────────┐
+                     └─────────┘   Trainer │   ...
+                     └─────────────────────┘
+
+```
+
+---
+
+# "Stap2": twee spelers een interactie laten aangaan met een handshake actor
+
+* Als twee spelers een interactie aangaan moeten ze eerst allebei accepteren
+
