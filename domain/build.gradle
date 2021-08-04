@@ -50,6 +50,17 @@ application {
     mainClassName = 'akkamon.domain.iot.IotEntryPoint'
 }
 
+ext {
+   BartMarco = "presentatie.Marco"
+}
+
+task BartMarco(type: JavaExec) {
+    group = "Execution"
+    description = "Run BartMarco Example"
+    classpath = sourceSets.main.runtimeClasspath
+    main = BartMarco
+}
+
 run {
   standardInput = System.in
 }
