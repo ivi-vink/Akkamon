@@ -312,12 +312,12 @@ class Bart ...
                              └─────┘                                └─────────────────────┘
                                   |                                        \
                                   |                                         \
-                                  |                                   ┌─────────────────────┐
+                                  .                                   ┌─────────────────────┐
                                    \                                  │Bart (Ben al bezig)  │
                                     \                                 └─────────────────────┘
                                      \                                   /
                                       \                                 / wanneerIkKlaarBen
-                                       <---Ben klaar met de review! <---
+                                       .<--Ben klaar met de review! <--.
 
 
                              ┌─────┐   ReviewMijnCodeAlsjeblieft    ┌─────────────────────┐
@@ -335,7 +335,7 @@ class Bart ...
 
 * Actor gedrag kan veranderen door een .onMessage functie een andere behavior te laten returnen
 
-> Bart gaat niet terug naar de niet bezig staat in ons voorbeeld systeem, hoe zouden we Barts gedrag kunnen veranderen?
+> Bart gaat niet terug naar de niet bezig staat in ons voorbeeld systeem, hoe zouden we Barts gedrag kunnen veranderen naar niet bezig?
 
 ---
 
@@ -372,7 +372,7 @@ class Bart ...
 
 # Hoe gaan we van Direction input naar spelers bewegen? Direction Queue's sturen met HeartBeats
 
-* Start timer voor 200ms, als de tijd voorbij is dan vraag je om een HeartBeat
+> Start timer voor 200ms, als de tijd voorbij is dan vraag je om een HeartBeat
 
 ```
                                                     ┌─────┐
@@ -528,6 +528,8 @@ class Bart ...
 
 ---
 
+# De laatste stap van het HeartBeat verhaal: stuur het op naar de client
+
 ```
 
                                     Verzend naar spelers en speel de moves af
@@ -559,3 +561,110 @@ class Bart ...
 
 * Als twee spelers een interactie aangaan moeten ze eerst allebei accepteren
 
+![10](./interactie.gif)
+
+* Eerst verstuurt een speler een interactie start naar de *Nexus* actor
+* Dan maakt de nexus een handshake actor aan
+
+```
+┌─────┐                              ┌──────────┐
+│Nexus│ ---> .spawn(HandShaker) ---> │HandShaker│ ---> wacht op spelers om te accepteren
+└─────┘                              └──────────┘
+```
+
+* Als alle spelers hebben geaccepteerd, dan stuurt de handshaker een bericht terug naar de *Nexus*
+
+```
+
+┌──────────┐                                   ┌─────┐
+│HandShaker│ ---> tell(HandShakeResponse) ---> │Nexus│ ---> begin een battle!
+└──────────┘                                   └─────┘
+```
+
+---
+
+# "Stap3": Een Pokemon battle tussen twee speler modelleren (UNDER CONSTRUCTION)
+
+* Als de battle begonnen is kennen twee trainers een Battle actor!
+
+```
+                                 .                         .
+                                 .                         .
+                                 .                         .
+                             ┌────────┐                ┌────────┐
+                             │Trainer1│                │Trainer2│
+                             └────────┘                └────────┘
+                                 \                        /
+                                  .       ┌──────┐       .
+                                    ------│Battle│------
+                                          └──────┘
+```
+
+* Het gedrag van de trainers is ook verandert naar *inBattle*, ze doen niks meer met movement Berichten
+
+* Het idee is om een state/data object en een queue van user-interface events terug te sturen naar de Trainer
+
+```java
+// gaat naar de client                             // User interface events (UNDER CONSTRUCTION)
+class BattleMessage {                              enum BattleEventIds {
+                                                       INTRODUCTION
+    Queue<BattleEvent> eventsToPlay;               }
+    BattleState state;
+
+    public BattleMessage(
+            AkkamonNexus.TrainerID trainerID,
+            BattleEvents events,
+            BattleState state
+            ) {
+        this.eventsToPlay = events
+                        .trainerIDEventMap
+                        .get(trainerID);
+        this.state = state;
+    }
+}
+```
+
+---
+
+# Pokemon programmeren met OO
+
+* Pokemon zijn eigenlijk:
+    - nummers/ stats
+    - een type
+    - een ability
+    - statussen
+    - vier moves
+
+```java
+    private String name;
+    private MonStats stats;
+    private Type type;
+    private Ability ability;
+    private Map<StatusCategory, List<Status>> status;
+    private Map<MoveSlot, Move> moves;
+
+    public Mon(String name, MonStats stats, AkkamonType typeName, AkkamonAbilities abilityName, AkkamonStatus[] statusNames, String[] moveNames) {
+        this.name = name;
+        this.stats = stats;
+        this.type = new TypeFactory().fromName(typeName);
+        this.ability = new AbilityFactory().fromName(abilityName);
+        this.status = new StatusFactory().fromNames(statusNames);
+        this.moves = new MovesFactory().fromNames(moveNames);
+    }
+```
+
+* Elke van bovengenoemde heeft potentieel een behaviour in een beurt, ze moeten voldoen aan een interface ten minste, dit is wat ik nu denk dat er kan gebeuren in een beurt, moet nog argumenten opschrijven
+
+```java
+public interface Phases {
+    void fight();
+    void getAttacked();
+    void useItem();
+    void switchOut();
+    void switchIn();
+}
+```
+
+---
+
+# Demo time
