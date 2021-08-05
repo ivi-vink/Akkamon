@@ -40,11 +40,18 @@ Hoe maak je eigenlijk een mmo?
 * Spelers een interactie met elkaar laten aangaan
 * Een spel
 
+> Een spel waar veel dingen die tegelijk moeten gebeuren, en veel communicatie tussen client en backend.
+
+* Een spel: Phaser3, javascript framework
+* Veel communicatie: Websockets
+* Veel dingen tegelijk: Java Akka actor systeem
+
 ---
 
-# What is an actor? A computation unit in and of itself
+# Akka en actors introductie
+## What is an actor? A computation unit in and of itself
 
-> " The actor is the fundamental unit of computation. It has to embody three things:
+> " The actor is a fundamental unit of computation. It has to embody three things:
 * processing - because you gotta get something done
 * storage - because you have to be able to remember things
 * and, communications"
@@ -77,9 +84,11 @@ from very cool and funny talk: [The Actor Model (everything you wanted to know, 
                        └──────┘                └──────┘
 ```
 
+>  Is de mailbox ook een actor? Nee
+
 ---
 
-# Hoe werkt het precies? Is de mailbox ook een actor? Nee
+# Hoe werkt het precies?
 
 
 Wat kan een actor precies wanneer een bericht ontvangen wordt??:
@@ -93,11 +102,11 @@ I. Hij kan een nieuwe actor maken/spawnen
          └──────┘             └────────┘
 ```
 
-II. Hij kan een nieuw berict sturen naar een adres wat hij kent (in een HashMap bijv.)
+II. Hij kan een nieuw berict sturen naar een actor die hij kent (in een HashMap bijv.)
 
 ```
  bericht ┌──────┐       bericht ┌─────────────┐
--------->│Actor1│ .tell ------> │bekendeActeur│
+-------->│Actor1│ .tell ------> │bekendeActor │
          └──────┘               └─────────────┘
 ```
 
@@ -105,7 +114,7 @@ III. Hij kan opgeven wat hij met volgende berichten gaat doen (denk gedrag van e
 
 ```
  bericht  ┌──────────┐                    ┌─────────┐
---------> │blijeActor│ .behaviorBoos ---> │bozeActor│ <- (hij reageert nu boos op berichten)
+--------> │blijeActor│ .behaviorBoos ---> │bozeActor│ <- (zelfde actor reageert nu boos op berichten)
           └──────────┘                    └─────────┘
 ```
 
@@ -163,19 +172,29 @@ let theFuture = () => { new Promise(resolve => {setTimeout(resolve, 1000)} ) }
 await theFuture();
 ```
 
-* _Many to many_ relaties tussen actors en hun adressen (1 actor met veel adressen niet gebruikt)
+* _Many to many_ relaties tussen actors en hun adressen
 
-* Berichten ensurance of arrival ()
+* Berichten ensurance of arrival
 
 * Non- determinisme (Uitkomst van systeem hangt af van factoren buiten het systeem)
 
 * Synchronisation en mutability van data (built-in alleen, de 1 message at a time regel)
 
-* Arbiters indeterminisme
+* Clusters en sharding voor distributed computing
 
-* Van adress naar actor gaan (implementatie detail)
+* Persistence en database koppeling met event sourcing
+
+* Other things?
 
 > " This is the end. Nobody could ever conceive of a model of computation beyond that of the Turing machine. "
+
+---
+
+# Samenvatting
+
+* Actors kunnen eigenlijk* maar drie dingen: spawn, tell, en Behavior veranderen
+
+*Over-simplificatie, afhankelijk van de implementatie is meer mogelijk
 
 ---
 
@@ -293,7 +312,7 @@ class Bart ...
 
     private Behavior<Bericht> benAlBezig(reviewMijnCodeAlsjeblieft codeReviewVraag) {
         getContext().getLog().info("Bart ontvangt tweede keer de vraag van Marco en reageert nu gelijk.");
-        codeReviewVraag.replyTo.tell(new isKlaarMetCodeReview("Ben al bezig met de code review, Life is bad."));
+        codeReviewVraag.replyTo.tell(new isKlaarMetCodeReview("Ben al bezig met de code review."));
         return this;
     }
 [...]
@@ -325,7 +344,7 @@ class Bart ...
                              └─────┘                                └─────────────────────┘
                                      \                                   /
                                       \                                 / gelijk
-                                       <---Ben al bezig, Life is Bad <---
+                                       <---       Ben al bezig!    <---.
 
 ```
 
@@ -339,7 +358,8 @@ class Bart ...
 
 ---
 
-# Het actor systeem van akkamon: spelers laten bewegen in de wereld
+# Het actor systeem van akkamon
+## Spelers laten bewegen in de wereld
 
 ![5](./lopenShort.gif)
 
@@ -355,7 +375,7 @@ class Bart ...
                                                         }
 ```
 
-* Movement voor een actor berichten
+* Movement berichten
 
 ```java
             class RequestStartMoving {                       class RequestStopMoving {    class RequestNewTilePos {
@@ -370,7 +390,9 @@ class Bart ...
 
 ---
 
-# Hoe gaan we van Direction input naar spelers bewegen? Direction Queue's sturen met HeartBeats
+# Hoe gaan we van Direction input naar spelers bewegen?
+
+## Direction Queue's sturen met HeartBeats
 
 > Start timer voor 200ms, als de tijd voorbij is dan vraag je om een HeartBeat
 
@@ -532,7 +554,7 @@ class Bart ...
 
 ```
 
-                                    Verzend naar spelers en speel de moves af
+                                    Verzend naar spelers en speel de moves af op het scherm
                                                      .
                                                     /|\
                                                      |
@@ -554,6 +576,43 @@ class Bart ...
                      └─────────────────────┘
 
 ```
+
+> Hoe zouden we het systeem kunnen verbeteren?
+
+---
+
+# De laatste stap van het HeartBeat verhaal: stuur het op naar de client
+
+```
+
+                                    Verzend naar spelers en speel de moves af op het scherm
+                                                     .
+                                                    /|\
+                                                     |
+                                                     |
+                         ┌─────┐                  ┌─────┐
+                         │Query│-tell(HeartBeat)->│Nexus│
+                         └─────┘       Response   └─────┘
+                           |                       /    |
+                           |                      .     .
+                      Direction.UP                |     |
+                      Direction.UP          ┌─────┐
+                           .                │Scene│    ...
+                          /|\               └─────┘
+                           |                /   |
+                           |               .    .
+                     ┌─────────┐           |    |
+                     │MoveQueue│┌──────────┐
+                     └─────────┘   Trainer │   ...
+                     └─────────────────────┘
+
+```
+
+> Hoe zouden we het systeem kunnen verbeteren?
+
+* Synchronisatie stap toevoegen met absolute TilePos coordinaten
+* Validatie
+* Persistence
 
 ---
 
@@ -581,9 +640,42 @@ class Bart ...
 └──────────┘                                   └─────┘
 ```
 
+> Wat als er iets mis gaat met de handshake?
+
 ---
 
-# "Stap3": Een Pokemon battle tussen twee speler modelleren (UNDER CONSTRUCTION)
+# "Stap2": twee spelers een interactie laten aangaan met een handshake actor
+
+* Als twee spelers een interactie aangaan moeten ze eerst allebei accepteren
+
+![10](./interactie.gif)
+
+* Eerst verstuurt een speler een interactie start naar de *Nexus* actor
+* Dan maakt de nexus een handshake actor aan
+
+```
+┌─────┐                              ┌──────────┐
+│Nexus│ ---> .spawn(HandShaker) ---> │HandShaker│ ---> wacht op spelers om te accepteren
+└─────┘                              └──────────┘
+```
+
+* Als alle spelers hebben geaccepteerd, dan stuurt de handshaker een bericht terug naar de *Nexus*
+
+```
+
+┌──────────┐                                   ┌─────┐
+│HandShaker│ ---> tell(HandShakeResponse) ---> │Nexus│ ---> begin een battle!
+└──────────┘                                   └─────┘
+```
+
+> Wat als er iets mis gaat met de handshake?
+
+* Ligt aan het interactie type
+* Als iemand weigert en iedereen is nodig dan gaat het niet door
+
+---
+
+# "Stap3": Een Pokemon battle tussen twee spelers modelleren (UNDER CONSTRUCTION)
 
 * Als de battle begonnen is kennen twee trainers een Battle actor!
 
@@ -602,12 +694,13 @@ class Bart ...
 
 * Het gedrag van de trainers is ook verandert naar *inBattle*, ze doen niks meer met movement Berichten
 
-* Het idee is om een state/data object en een queue van user-interface events terug te sturen naar de Trainer
+* Het idee is om een state/data object en een queue van user-interface events terug te sturen naar de Client
 
 ```java
-// gaat naar de client                             // User interface events (UNDER CONSTRUCTION)
+// gaat naar de client vanaf de actor              // User interface events
 class BattleMessage {                              enum BattleEventIds {
-                                                       INTRODUCTION
+                                                       INTRODUCTION,
+                                                       FIGHT //?(UNDER CONSTRUCTION)
     Queue<BattleEvent> eventsToPlay;               }
     BattleState state;
 
@@ -653,7 +746,7 @@ class BattleMessage {                              enum BattleEventIds {
     }
 ```
 
-* Elke van bovengenoemde heeft potentieel een behaviour in een beurt, ze moeten voldoen aan een interface ten minste, dit is wat ik nu denk dat er kan gebeuren in een beurt, moet nog argumenten opschrijven
+* Elke van bovengenoemde heeft potentieel een behaviour in een beurt, ze moeten voldoen aan een interface ten minste, dit is wat ik nu denk dat er kan gebeuren in een beurt, moet nog argumenten opschrijven, waarschijnlijk de eventsToPlay en State van vorige slide.
 
 ```java
 public interface Phases {
@@ -668,3 +761,18 @@ public interface Phases {
 ---
 
 # Demo time
+
+
+
+```
+         █      █
+    ██   █      █
+    ██   █      █
+   ▒██▒  █  ▒█  █  ▒█  ░███░  ██▓█▓   ███   █▒██▒
+   ▓▒▒▓  █ ▒█   █ ▒█   █▒ ▒█  █▒█▒█  █▓ ▓█  █▓ ▒█
+   █░░█  █▒█    █▒█        █  █ █ █  █   █  █   █
+   █  █  ██▓    ██▓    ▒████  █ █ █  █   █  █   █
+  ▒████▒ █░█░   █░█░   █▒  █  █ █ █  █   █  █   █
+  ▓▒  ▒▓ █ ░█   █ ░█   █░ ▓█  █ █ █  █▓ ▓█  █   █
+  █░  ░█ █  ▒█  █  ▒█  ▒██▒█  █ █ █   ███   █   █
+```
