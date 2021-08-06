@@ -33,10 +33,37 @@ cd client
 npm i
 ```
 
+2. Building the project with gradle automatically pulls the dependencies in `domain/build.gradle` and `api/build.gradle`
+
+```sh
+# OPTIONAL: If you want to list dependencies
+cd domain
+gradle dependencies
+cd ../api
+gradle dependencies
+cd ..
+gradle assemble
+```
+
 # Start playing
 
+To start playing we need to start two services, the Phaser3 client and Akka backend.
+
+First, in the project root
+
+```sh
+gradle run
+```
+
+Then, in the client module, in another shell session
+
+```sh
+npm run phaserDev
+```
 
 # Tests (or lack thereof)
+
+Sadly, there are no real tests yet.
 
 
 [^gameengine]: Not completely from scratch, but I had to add stuff to connect it with the Websockets communication.
