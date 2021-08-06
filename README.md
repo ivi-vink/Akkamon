@@ -77,6 +77,13 @@ In theory, an arbitrary number of clients could connect to the backend. Not test
 | a | opens pause menu in overworld |
 | up/left/right/down | walk around |
 
+| Tables        | Are           | Cool  |
+| ------------- |:-------------:| -----:|
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
+
+
 # Tests (or lack thereof)
 
 Sadly, there are no real tests yet.
