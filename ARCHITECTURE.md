@@ -14,6 +14,8 @@
 
 ## Overview diagram
 
+DISCLAIMER: Don't take this overview as absolute truth, but as the most important information flows. There are some especially complex (and perhaps unnecessarily complex) interactions in the typescript code that
+are not included here.
 
 ```
 ┌────────────────────────────────────────────────────────────────┐
