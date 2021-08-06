@@ -17,7 +17,7 @@ extensions:
 | |
 | |
 | |
-| Akkamon: een mmo maken met akka en phaser3   |
+| Akkamon: hoe we een mmo kunnen maken met akka en phaser3   |
 | |
 | |
 | |
@@ -40,11 +40,11 @@ Hoe maak je eigenlijk een mmo?
 * Spelers een interactie met elkaar laten aangaan
 * Een spel
 
-> Een spel waar veel dingen die tegelijk moeten gebeuren, en veel communicatie tussen client en backend.
+> Een spel waar veel dingen tegelijk moeten gebeuren, en veel communicatie tussen client en backend.
 
-* Een spel: Phaser3, javascript framework
-* Veel communicatie: Websockets
-* Veel dingen tegelijk: Java Akka actor systeem
+* Een spel:                 Phaser3, een javascript/typescript framework
+* Veel communicatie:        Websockets
+* Veel dingen tegelijk:     Java Akka, strongly typed actor systeem
 
 ---
 
@@ -278,7 +278,7 @@ public Marco() {
 
 * Als je bart vraagt om een code review terwijl hij al bezig is reageert hij anders:
 
-```
+```terminal20
 bash -c "gradle :domain:BartMarco"
 ```
 
