@@ -12,7 +12,7 @@
 * A lot of communication:        Websockets met [Jetty](https://en.wikipedia.org/wiki/Jetty_(web_server)) en [Javascript](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket)
 * Doing a lot of things at once:     [Java Akka](https://doc.akka.io/docs/akka/current/typed/interaction-patterns.html#interaction-patterns), [Java Akka Docs](https://doc.akka.io/api/akka/current/akka/actor/typed/javadsl/index.html), strongly typed actor systeem
 
-## Diagram
+## Overview diagram
 
 
 ```
