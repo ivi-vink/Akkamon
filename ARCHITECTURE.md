@@ -49,8 +49,9 @@ are not included here.
                         └───────────────┘
                              |      |
                              |      |
- Map<SceneId,             -> .      . <- Map<TrainerID, AkkamonSession/Websocket>
- AkkamonSession/Websocket>   |      |
+ Map<SceneId,   -----------> .      . <- Map<TrainerID, AkkamonSession/Websocket>
+Set<AkkamonSession           |      |
+/Websocket>>                 |      |
                            ┌─────────┐
                            │Messaging│
                            │Engine   │
