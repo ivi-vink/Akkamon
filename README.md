@@ -72,16 +72,10 @@ In theory, an arbitrary number of clients could connect to the backend. Not test
 
 * Overworld
 
-| key | does |
-| ---------- |
-| a | opens pause menu in overworld |
-| up/left/right/down | walk around |
-
-| Tables        | Are           | Cool  |
-| ------------- |:-------------:| -----:|
-| col 3 is      | right-aligned | $1600 |
-| col 2 is      | centered      |   $12 |
-| zebra stripes | are neat      |    $1 |
+| Key                | Does            |
+| ------------------ |:---------------:|
+| `a`                | open pause menu |
+| up/left/right/down | walk around     |
 
 
 # Tests (or lack thereof)
