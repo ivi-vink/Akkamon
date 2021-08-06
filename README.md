@@ -58,8 +58,13 @@ gradle run
 Then, in the client module, in another shell session
 
 ```sh
+// this command takes 20s seconds to transpile the typescript into javascript :(
 npm run phaserDev
 ```
+
+The Phaser3 client listens on `localhost:10001`. Assigning client sessions to an Id in the backend is still buggy since no authentication is used. Try connecting once at a time, and restart the `gradle run` server when you disconnect just to be sure (it's starts up quickly).
+
+In theory, an arbitrary number of clients could connect to the backend. Not tested yet.
 
 # Tests (or lack thereof)
 
