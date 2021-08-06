@@ -26,13 +26,13 @@ extensions:
 
 ---
 
-![10](./thinkingEmoji.png)
+![10](./images/thinkingEmoji.png)
 
 Hoe maak je eigenlijk een mmo? Wat is eigenlijk een mmo?
 
 ---
 
-![10](./thinkingEmoji.png)
+![10](./images/thinkingEmoji.png)
 
 Hoe maak je eigenlijk een mmo?
 
@@ -49,6 +49,7 @@ Hoe maak je eigenlijk een mmo?
 ---
 
 # Akka en actors introductie
+
 ## What is an actor? A computation unit in and of itself
 
 > " The actor is a fundamental unit of computation. It has to embody three things:
@@ -361,7 +362,7 @@ class Bart ...
 # Het actor systeem van akkamon
 ## Spelers laten bewegen in de wereld
 
-![5](./lopenShort.gif)
+![5](./images/lopenShort.gif)
 
 * TrainerID, Direction enum en TilePos data
 
@@ -620,7 +621,7 @@ class Bart ...
 
 * Als twee spelers een interactie aangaan moeten ze eerst allebei accepteren
 
-![10](./interactie.gif)
+![10](./images/interactie.gif)
 
 * Eerst verstuurt een speler een interactie start naar de *Nexus* actor
 * Dan maakt de nexus een handshake actor aan
@@ -648,7 +649,7 @@ class Bart ...
 
 * Als twee spelers een interactie aangaan moeten ze eerst allebei accepteren
 
-![10](./interactie.gif)
+![10](./images/interactie.gif)
 
 * Eerst verstuurt een speler een interactie start naar de *Nexus* actor
 * Dan maakt de nexus een handshake actor aan
