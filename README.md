@@ -77,6 +77,29 @@ In theory, an arbitrary number of clients could connect to the backend. Not test
 | `a`                | open pause menu |
 | up/left/right/down | walk around     |
 
+* Pause menu / Phone menu / Yes-no menu
+
+| Key                | Does            |
+| ------------------ |:---------------:|
+| up/down | go option up/down          |
+| left    | close menu                 |
+| right   | confirm option             |
+
+* Battle FIGHT/ITEM/PKMN/RUN menu
+
+| Key                | Does            |
+| ------------------ |:---------------:|
+| up/left/right/down | go option  up/left/right/down |
+| space              | confirm option  |
+
+* Battle moves menu
+
+| Key                | Does            |
+| ------------------ |:---------------:|
+| up/down            | go option up/down |
+| space              | confirm option  |
+| left               | go back  |
+
 
 # Tests (or lack thereof)
 
