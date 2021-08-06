@@ -47,6 +47,8 @@ gradle assemble
 
 # Start playing
 
+## Run the services
+
 To start playing we need to start two services, the Phaser3 client and Akka backend.
 
 First, in the project root
@@ -65,6 +67,15 @@ npm run phaserDev
 The Phaser3 client listens on `localhost:10001`. Assigning client sessions to an Id in the backend is still buggy since no authentication is used. Try connecting once at a time, and restart the `gradle run` server when you disconnect just to be sure (it's starts up quickly).
 
 In theory, an arbitrary number of clients could connect to the backend. Not tested yet.
+
+## In-game controls
+
+* Overworld
+
+| key | does |
+| ---------- |
+| a | opens pause menu in overworld |
+| up/left/right/down | walk around |
 
 # Tests (or lack thereof)
 
