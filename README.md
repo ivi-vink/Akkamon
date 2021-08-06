@@ -1,3 +1,5 @@
+![](./akkamon.png)
+
 # Akkamon: a demo pokemon mmo written in Phaser3 typescript and Akka Java
 
 ![core-idea](./readme-media/header.gif)
