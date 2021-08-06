@@ -107,5 +107,8 @@ In theory, an arbitrary number of clients could connect to the backend. Not test
 
 Sadly, there are no real tests yet.
 
+# For more info
+
+Check `./presentatie/presentatie.md` or the README's in the modules. (Which do not exist yet)
 
 [^gameengine]: Not completely from scratch, but I had to add stuff to connect it with the Websockets communication.
