@@ -15,9 +15,23 @@ Like the actual battle, many things that you would expect from a pokemon MMO wer
 
 
 
-# Install
+# Install from source
 
+## Before you start
 
+Starting the installation requires a couple things:
+* Java JDK version 16.0.1 preferably
+* Gradle 7.1.1 was used in this project, but `./gradlew` provided should work instead of `gradle` in the installation commands
+* A recent version of Node.JS with npm
+
+## Install steps
+
+1. Use npm to install client side dependencies (for example phaser3, typescript, rollup)
+
+```sh
+cd client
+npm i
+```
 
 # Start playing
 
